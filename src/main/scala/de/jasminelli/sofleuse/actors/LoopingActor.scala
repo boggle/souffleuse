@@ -1,4 +1,4 @@
-package de.jasminelli.sofleuse
+package de.jasminelli.sofleuse.actors
 
 import scala.actors.Actor
 import scala.actors.Actor.loopWhile

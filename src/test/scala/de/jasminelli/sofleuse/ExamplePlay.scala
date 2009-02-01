@@ -1,5 +1,8 @@
 package de.jasminelli.sofleuse
 
+import de.jasminelli.sofleuse.stage._
+import de.jasminelli.sofleuse.core._
+
 import scala.actors.{Futures, Actor, Channel, Future}
 
 /**

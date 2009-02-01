@@ -1,4 +1,6 @@
-package de.jasminelli.sofleuse
+package de.jasminelli.sofleuse.stage
+
+import de.jasminelli.sofleuse.actors._
 
 import scala.actors.Actor
 import scala.actors.Actor._

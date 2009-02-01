@@ -1,8 +1,10 @@
 package de.jasminelli.sofleuse
 
+import de.jasminelli.sofleuse.actors._
+import de.jasminelli.sofleuse.core.Play._
+
 import scala.actors.Actor
 
-import Play._
 
 /**
  * Simple Demo of RPC based on StageActor

@@ -1,4 +1,4 @@
-package de.jasminelli.sofleuse
+package de.jasminelli.sofleuse.core
 
 /**
  * ScenePlayer executes (plays) functions that require the ScenePlayer as input argument

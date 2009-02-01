@@ -1,10 +1,10 @@
-package de.jasminelli.sofleuse
+package de.jasminelli.sofleuse.core
 
 import scala.actors.Actor
 import scala.actors.Channel
 
 /**
- *  Syntactic sugar for writing simple plays: Shared code between object and trait Play
+ * Syntactic sugar for writing simple plays: Shared code between object and trait Play
  *
  * @author Stefan Plantikow <Stefan.Plantikow@googlemail.com>
  **/
@@ -39,15 +39,6 @@ sealed protected trait ResponderTools {
   def computeWith[R, T](obj: R)(thunk: => R => T):Responder[T] = new Responder[T] {
     def respond(k: T => Unit) = k(thunk(obj))
   }
-
-  /**
-   * Compute a single for reuse by later scenes.  The computation is provided with the prop of
-   * a (likely the current) stage as an initial argument
-   *
-   * (runs inside the current stage actor)
-   */
-  def scene[R <: PropSource[P],P,T](stage: R)(thunk: => P => T) = computeWith(stage.prop)(thunk)
-    
 
   /**
    * Runs a play's for-loop over multiple stage actors and finally sends the result value(s)
@@ -101,9 +92,10 @@ object Play extends ResponderTools {
       // doesnt work compute[R] { thunk.asInstanceOf[R] }
 }
 
+
 /**
- * Syntactic sugar for writing "plays" (Sequences of scene) with a common upper bound on the type
- * of responsive players (resp. stage actor or stage)
+ * Syntactic sugar for writing "plays" (Sequences of scenes) with a common upper bound on the type
+ * of responsive players (resp. stage actors or stages)
  *
  * Override apply in instances to bring all the utility functions from Play's companion
  * narrowed down to the given type bound into scope
@@ -126,14 +118,15 @@ abstract trait Play[-R <: ResponsivePlayer, O] extends Function0[Responder[O]] w
 
 
 /**
- * Play that doesn not produce a result value
+ * Play that doesnt produce a result value and may only be executed asynchronously
  *
  * @author Stefan Plantikow <Stefan.Plantikow@googlemail.com>
  */
-trait AsyncUnitPlay[-R <: ResponsivePlayer] extends Play[R, Unit] {
+trait AsyncPlay[-R <: ResponsivePlayer] extends Play[R, Unit] {
+
   /**
    * Variant of super.play that is non-blocking
    */
-    override def play: Unit = Responder.exec(this())
+  override def play: Unit = Responder.exec(this())
 }
 

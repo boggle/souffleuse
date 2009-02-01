@@ -1,4 +1,8 @@
-package de.jasminelli.sofleuse
+package de.jasminelli.sofleuse.stage
+
+
+import de.jasminelli.sofleuse.core.{ResponsivePlayer, Play}
+
 
 /**
  * Prop Source
@@ -11,6 +15,7 @@ package de.jasminelli.sofleuse
  */
 trait PropSource[+H] { def prop: H }
 
+
 /**
  * Prop drain
  *
@@ -19,6 +24,7 @@ trait PropSource[+H] { def prop: H }
  * @author Stefan Plantikow <Stefan.Plantikow@googlemail.com>
  */
 trait PropDrain[-H] { def prop_=(newProp: H): Unit }
+
 
 /**
  * @see PropSource
@@ -38,4 +44,23 @@ trait PropCell[H] extends PropSource[H] with PropDrain[H] ;
  */
 trait SimplePropCell[H] extends PropCell[H] {
   var prop: H
+}
+
+
+/**
+ * Extends Play with an additional utility function for computing thunks in the current stage
+ * over the stage's prop
+ *
+ * @see Play
+ *
+ * @author Stefan Plantikow <Stefan.Plantikow@googlemail.com>
+ */
+trait PropPlay[-R <: ResponsivePlayer, O] extends Play[R, O] {
+  /**
+   * Compute a single for reuse by later scenes.  The computation is provided with the prop of
+   * a (likely the current) stage as an initial argument
+   *
+   * (runs inside the current stage actor)
+   */
+  def scene[R <: PropSource[P],P,T](stage: R)(thunk: => P => T) = computeWith(stage.prop)(thunk)
 }
