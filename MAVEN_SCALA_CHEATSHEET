@@ -1,0 +1,113 @@
+// compiling w. peeking at what is actually done
+
+mvn scala:compile -Dmaven.scala.displayCmd=true
+
+
+// running:
+
+mvn scala:run -DmainClass=de.jasminelli.sofleuse.ExamplePlay
+mvn scala:run -Dlauncher=RpcDemo                            
+                                                            
+
+// scala console:
+
+mvn scala:console                                             
+
+
+// different console:
+
+	<plugin>
+        <groupId>org.scala-tools</groupId>
+        <artifactId>maven-scala-plugin</artifactId>
+        ...
+        <configuration>
+          <mainConsole>LiftConsole</mainConsole>
+        </configuration>
+      </plugin>
+
+
+// this rocks:       
+
+mvn scala:console -Djavarebel.jar.path=[path_of_javarebel.jar]
+
+                          
+// or configure javarebel inline:
+
+	<plugin>
+       <groupId>org.scala-tools</groupId>
+       <artifactId>maven-scala-plugin</artifactId>
+       ...
+       <configuration>
+         <javaRebelPath>${user.home}/lib/java/javarebel/javarebel.jar</javaRebelPath>
+       </configuration>
+     </plugin>
+                                
+
+// especially good together with continuous compilation:
+
+mvn scala:cc
+           
+
+// scala docs:
+
+mvn scala:doc
+mvn site         
+
+
+// other:
+
+mvn scala:add-source
+mvn scala:help
+mvn scala:script
+mvn scala:testCompile
+
+
+// defining scripts
+
+  <plugin>
+    <groupId>org.scala-tools</groupId>
+    <artifactId>maven-scala-plugin</artifactId>
+    <executions>
+      <execution>
+        <phase>package</phase>
+        <goals>
+          <goal>script</goal>
+        </goals>
+      </execution>
+    </executions>
+    <configuration>
+      <script>
+      	println ("Hello from pom script :-)")
+     </script>
+    </configuration>
+  </plugin>  
+
+        
+  <!--  as part of build -->
+
+  <plugin>
+    <groupId>org.scala-tools</groupId>
+    <artifactId>maven-scala-plugin</artifactId>
+    <executions>
+      <execution>
+        <phase>package</phase>
+        <goals>
+          <goal>script</goal>
+        </goals>
+      </execution>
+    </executions>
+    <configuration>
+      <scriptFile>package.scala</scriptFile>
+    </configuration>
+  </plugin>   
+                                  
+
+  <!-- predefining script file -->
+
+  <plugin>
+    <groupId>maven</groupId>
+    <artifactId>maven-scala-plugin</artifactId>
+    <configuration>
+      <scriptFile>pathToScript/MyScript</scriptFile>
+    </configuration>
+  </plugin>  
