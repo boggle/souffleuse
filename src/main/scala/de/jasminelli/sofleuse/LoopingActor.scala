@@ -7,6 +7,7 @@ import scala.actors.Actor.loopWhile
  * Support for simple actors that consist of a single react/receive loop with apropriate hooks
  * for startup and shutdown.
  *
+ * @author Stefan Plantikow <Stefan.Plantikow@googlemail.com>
  */
 trait LoopingActor extends Actor {
 
@@ -32,7 +33,6 @@ trait LoopingActor extends Actor {
 
   /**
    * Does nothing.  Override in subtypes.
-   *
    */
   protected def mainLoop: Unit = ()
 
@@ -62,6 +62,5 @@ trait LoopingActor extends Actor {
   /**
    * Shutdown this actor after finishing the current scene
    */
-
   def shutdownAfterScene: Unit = _running = false
 }

@@ -15,12 +15,16 @@ trait PropSource[+H] { def prop: H }
  * Prop drain
  *
  * @see PropSource
+ *
+ * @author Stefan Plantikow <Stefan.Plantikow@googlemail.com>
  */
 trait PropDrain[-H] { def prop_=(newProp: H): Unit }
 
 /**
  * @see PropSource
  * @see PropDrain
+ *
+ * @author Stefan Plantikow <Stefan.Plantikow@googlemail.com>
  */
 trait PropCell[H] extends PropSource[H] with PropDrain[H] ;
 
@@ -29,6 +33,8 @@ trait PropCell[H] extends PropSource[H] with PropDrain[H] ;
  * Implements PropCell with a single public var
  *
  * @see PropCell
+ *
+ * @author Stefan Plantikow <Stefan.Plantikow@googlemail.com>
  */
 trait SimplePropCell[H] extends PropCell[H] {
   var prop: H

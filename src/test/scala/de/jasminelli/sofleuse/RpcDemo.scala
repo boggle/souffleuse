@@ -8,7 +8,6 @@ import Play._
  * Simple Demo of RPC based on StageActor
  * 
  * @author Stefan Plantikow <Stefan.Plantikow@googlemail.com>
- * @version $Id$ 
  *
  * Originally created by User: stepn Date: 01.02.2009 Time: 00:06:57
  */

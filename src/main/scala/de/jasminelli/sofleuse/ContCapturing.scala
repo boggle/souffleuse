@@ -3,13 +3,19 @@ package de.jasminelli.sofleuse
 import scala.actors.Actor
 
 /**
- * Adds the ability to capture the next scene continuation that will be executed by this actor
- * and access it with a hook.  This allows to get acess to the "rest-of-the-current-play" in a
- * StageActor (aka weird form of "deferred" call-cc).
+ * Adds the ability to capture the next scene continuation that will be executed by this actor.
+ * The capured continuation is handed to a previously-registering hook.  This allows to get access
+ * to the "rest-of-the-current-play" in a StageActor (aka weird form of "deferred" call-cc).
+ *
+ * The implementation avoids building up a big stack by ensuring that the "Hook-registering"
+ * stackframe has been left before activating the hook.
  *
  * <b>EXPERIMENTAL</b>
  *
  * @see StageActor
+ *
+ *
+ * @author Stefan Plantikow <Stefan.Plantikow@googlemail.com>
  */
 trait ContCapturingActor extends StageActor {
   final type ContHook = Scene => Unit

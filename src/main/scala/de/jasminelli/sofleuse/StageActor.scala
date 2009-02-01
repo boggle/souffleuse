@@ -7,6 +7,8 @@ import scala.actors.Actor.loopWhile
  * Default implementation trait for an Actor that is a ResponsivePlayer
  *
  * @see Stage
+ *
+ * @author Stefan Plantikow <Stefan.Plantikow@googlemail.com>
  */
 trait StageActor extends LoopingActor with ResponsivePlayer {
   self: StageActor =>
@@ -91,17 +93,15 @@ trait StageActor extends LoopingActor with ResponsivePlayer {
    * @see Play
    */
   def playScene(scene: Scene): Unit = self ! scene.asInstanceOf[Any => Unit]
-
-  object responder extends Responder[this.type] {
-    def respond(k: StageActor.this.type => Unit): Unit = self.playScene(k)
-  }
-
-  def asResponder: Responder[this.type] = responder
 }
 
 
 /**
+ * Companion that holds different utility classes/traits
+ *
  * @see StageActor
+ *
+ * @author Stefan Plantikow <Stefan.Plantikow@googlemail.com>
  */
 object StageActor {
   /**

@@ -35,7 +35,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>3.8.1</version>
+      <version>4.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -91,8 +91,8 @@
       <plugin>
         <groupId>org.scala-tools</groupId>
         <artifactId>maven-scala-plugin</artifactId>
-        <configuration>
-  	    <vscalaVersion>1.0</vscalaVersion>
+          <configuration>
+          <!-- vscaladocVersion>1.0</vscaladocVersion -->
         </configuration>
       </plugin>
     </plugins>
