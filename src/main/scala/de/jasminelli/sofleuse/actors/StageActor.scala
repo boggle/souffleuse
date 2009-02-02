@@ -46,7 +46,10 @@ trait StageActor extends LoopingActor with ResponsivePlayer {
   def performScene(scene: Scene): Unit = {
     assert(self == Actor.self, "onScene called from outside of actor")
     try { onScene(scene) }
-    catch { case t: Throwable => onSceneFailure(t) }
+    catch {
+      case h: StageActor.HandledSceneException => ()
+      case t: Throwable => onSceneFailure(t)
+    }
   }
 
 
@@ -95,6 +98,13 @@ trait StageActor extends LoopingActor with ResponsivePlayer {
    * @see Play
    */
   def playScene(scene: Scene): Unit = self ! scene.asInstanceOf[Any => Unit]
+
+
+  /**
+   * Call to notify the stage that request processing is done.  Allows a premature end of
+   * scene executing.
+   */
+  def finishScene = throw new StageActor.HandledSceneException
 }
 
 
@@ -108,15 +118,30 @@ trait StageActor extends LoopingActor with ResponsivePlayer {
 object StageActor {
   /**
    * Thrown by StageActor to indicate that a message was not understood
+   *
+   * @author Stefan Plantikow <Stefan.Plantikow@googlemail.com>
    */
   class UnknownMessageException extends IllegalArgumentException ;
 
+  
   /**
    * StageActors that want to use react instead of receive should include this trait
+   *
+   * @author Stefan Plantikow <Stefan.Plantikow@googlemail.com>
    */
   trait Reacting {
     this: StageActor =>
 
     protected def mainLoop = react(matcher)
   }
+
+  
+  /**
+   * Used to signal a premature end of scene execution
+   *
+   * @see StageActor.finishScene
+   *
+   * @author Stefan Plantikow <Stefan.Plantikow@googlemail.com>
+   */
+  class HandledSceneException extends RuntimeException ;
 }
