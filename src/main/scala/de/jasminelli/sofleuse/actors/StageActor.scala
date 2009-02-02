@@ -95,9 +95,32 @@ trait StageActor extends LoopingActor with ResponsivePlayer {
    * writing request handling logic over multiple stages in a single piece of
    * code)
    *
+   * Implementations cannot override this.  Instead they may only override
+   * playLocalScene for different behaviour when submitting scenes from inside the actor.
+   *
    * @see Play
    */
-  def playScene(scene: Scene): Unit = self ! scene.asInstanceOf[Any => Unit]
+  final def playScene(scene: Scene): Unit =
+    if (this == Actor.self) playLocalScene(scene) else playRemoteScene(scene)
+
+
+  /**
+   * Default implementation calls playRemoteScene(scene)
+   *
+   * @see playScene
+   */
+  protected def playLocalScene(scene: Scene): Unit = playRemoteScene(scene)
+
+
+  /**
+   * Sends scene to self for execution
+   *
+   * When overriding, be very careful when communicating with remote actors
+   * since StageActor.remote might not work anymore
+   *
+   * @see playScene
+   */
+  protected final def playRemoteScene(scene: Scene): Unit = self ! scene.asInstanceOf[Any => Unit]
 
 
   /**

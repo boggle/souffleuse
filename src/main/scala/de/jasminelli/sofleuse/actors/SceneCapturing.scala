@@ -48,20 +48,17 @@ trait SceneCapturing extends StageActor {
 
 
   /**
-   *  Calls super.playScene unless a continuation hook was registered and this == Actor.self.
+   * Calls super.playScene unless a continuation hook was registered and this == Actor.self.
    * In this case, remembers the scene as continuation argument for the hook and does nothing.
    * The hook will then be called later with the cached continuation by an upper stack frame of
    * onScene.
    *
    * @see onScene
    */
-  override def playScene(scene: this.type => Unit): Unit = {
-    if (this == Actor.self && sceneHook != null)
-      /* next scene for hook produced by current scene continuation executing inside this actor */
-      _deferredScene = scene
-    else
-      super.playScene(scene)
-  }
+  override def playLocalScene(scene: this.type => Unit): Unit =
+    /* register scene for hook */
+    if (sceneHook != null) _deferredScene = scene
+
   
   /**
    * Like StageActor.onScene but otionally calls a registered onNextScene-hook instead if
