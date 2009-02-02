@@ -14,7 +14,7 @@ import scala.actors.Actor._
  *
  * Originally created by User: stepn Date: 16.01.2009 Time: 23:45:03
  */
-trait Stage[+P] extends ContCapturingActor with PropSource[P] ;
+trait Stage[+P] extends SceneCapturing with PropSource[P] ;
 
 
 /**
