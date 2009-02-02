@@ -63,7 +63,6 @@ sealed protected trait ResponderTools {
   }
 }
 
-
 /**
  * Syntactic sugar for writing simple plays
  *

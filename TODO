@@ -1,7 +1,7 @@
-* More tests: Especially: Continuations, finishScene
+* More tests: Especially: Continuations, finishScene, remoteActors
+* Rewrite continuations such that multiple hooks may be registered
 * Find out how all this scala testing sw can be used (scala check, scala spec whatnot)
 * Performance comparison between "pull-type-rpc" and "sofleuse"
 * Maybe identical code in both styles to show-off much better readability
-* Think about how this may work with RemoteActors..
 * Demo/Slides!
 

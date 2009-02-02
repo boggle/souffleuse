@@ -116,6 +116,17 @@ trait StageActor extends LoopingActor with ResponsivePlayer {
  * @author Stefan Plantikow <Stefan.Plantikow@googlemail.com>
  */
 object StageActor {
+
+  /**
+   * Turns an arbitrary (potentially remote) actor into a StageActor-subtype responder
+   *
+   * Please consider that the result is not memoized while you might want to do so
+   */
+  def remote[V <: StageActor](actor: Actor): Responder[V] = new Responder[V] {
+    def respond(k: V => Unit): Unit = actor ! k
+  }
+
+
   /**
    * Thrown by StageActor to indicate that a message was not understood
    *
