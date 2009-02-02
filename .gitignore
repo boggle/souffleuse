@@ -6,6 +6,7 @@ target/
 .hg
 
 # os x
+sofleuse.xcodeproject
 .DS_Store
 profile
 build/*
