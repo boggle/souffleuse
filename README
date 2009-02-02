@@ -27,7 +27,7 @@ Sofleuse is a normal maven 2 project.
 
 mvn package
 
-creates a jar in target/.
+Creates a jar in target/.
 
 
 ----
@@ -36,19 +36,21 @@ DOCS
 
 mvn scala:doc
 
-creates api docs.
+Creates API docs.
 
-See in src/test for usage examples.
+See below src/test for usage examples.
 
 
 -------------
 CODE OVERVIEW
 ------------
 
-There are three packages src/main/ which should be read in the following (bottom-up) order:
+(1) The core idea in three spots: ResponsivePlayer.asResponder, (StageActor.matcher -> performScene -> onScene), playScene
 
-core: 
-	player.scala
+(2) There are three packages src/main/ which should be read in the following (bottom-up) order:
+
+play: 
+	players.scala
 	- Few simple interface traits, especially noteworthy: ResponsivePlayer
 
 	play.scala
@@ -57,8 +59,8 @@ core:
 actors:
 	The meat.
 
-	Read in this order: LoopinActor (auxiliary stuff),
-        StageActor (main idea), ContCapturingActor (nice little extension)
+	Read in this order: LoopingActor (auxiliary stuff),
+        StageActor (main idea), SceneCapturing (nice little extension)
 
 stage:
 	Bells and whistles.
@@ -66,7 +68,7 @@ stage:
 	Read prop.scala, then stage.scala
 
 
-Additionally, there are usage examples in src/test/: RpcDemo, ExamplePlay
+(3) Additionally, there are usage examples below src/test/, like RpcDemo and ExamplePlay.
 
 
 
