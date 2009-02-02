@@ -120,7 +120,8 @@ trait StageActor extends LoopingActor with ResponsivePlayer {
    *
    * @see playScene
    */
-  protected final def playRemoteScene(scene: Scene): Unit = self ! scene.asInstanceOf[Any => Unit]
+  protected final def playRemoteScene(scene: Scene): Unit =
+    StageActor.sendScene[this.type](self, scene)
 
 
   /**
@@ -145,10 +146,12 @@ object StageActor {
    *
    * Please consider that the result is not memoized while you might want to do so
    */
-  def remote[V <: StageActor](actor: Actor): Responder[V] = new Responder[V] {
-    def respond(k: V => Unit): Unit = actor ! k
+  def remoteStageActor[V <: StageActor](actor: Actor): Responder[V] = new Responder[V] {
+    def respond(k: V => Unit): Unit = sendScene(actor, k)
   }
 
+
+  def sendScene[V <: StageActor](actor: Actor, k: V => Unit) = actor ! k
 
   /**
    * Thrown by StageActor to indicate that a message was not understood
