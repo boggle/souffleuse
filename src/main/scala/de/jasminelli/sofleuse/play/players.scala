@@ -1,5 +1,7 @@
 package de.jasminelli.sofleuse.core
 
+import _root_.scala.actors.Actor
+
 /**
  * ScenePlayer executes (plays) functions that require the ScenePlayer as input argument
  *
@@ -22,7 +24,6 @@ trait SelfResponsive {
   def asResponder: Responder[this.type]
 }
 
-
 /**
  * Shared top-level trait of sofluese stages/actors
  *
@@ -39,4 +40,3 @@ trait ResponsivePlayer extends ScenePlayer with SelfResponsive {
 
   def asResponder: Responder[this.type] = responder
 }
-

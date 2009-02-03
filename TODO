@@ -1,6 +1,10 @@
 * More tests: Especially: Continuations, finishScene, remoteActors
-* Maybe introduce views for abstracting out responder construction and message sending
 * Rewrite continuations such that multiple hooks may be registered
+    - Requires tags on messages
+    - just part or StageActor state all the time, set on matching, transferred
+    on send, open issue: gc, alt: read up on channels..
+    - unclear: define goal and scenario first!
+    - maybe completely kill what is in place now
 * Find out how all this scala testing sw can be used (scala check, scala spec whatnot)
 * Performance comparison between "pull-type-rpc" and "sofleuse"
 * Maybe identical code in both styles to show-off much better readability
