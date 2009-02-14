@@ -61,6 +61,7 @@
         </executions>
         <configuration>
 		<useFsc>true</useFsc>
+        <args>-optimise</args>
 		<launchers> <!-- Also valid: args arg and jvmArgs jvmArg -->
 		  <launcher><id>RpcDemo</id><mainClass>de.jasminelli.sofleuse.RpcDemo</mainClass></launcher>
 		  <launcher><id>ExamplePlay</id><mainClass>de.jasminelli.sofleuse.ExamplePlay</mainClass></launcher>

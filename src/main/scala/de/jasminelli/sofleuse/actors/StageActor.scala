@@ -116,7 +116,7 @@ trait StageActor extends LoopingActor with ResponsivePlayer {
    * Sends scene to self for execution
    *
    * When overriding, be very careful when communicating with remote actors
-   * since StageActor.remote might not work anymore
+   * since StageActor.playRemoteScene might not work anymore
    *
    * @see playScene
    */
