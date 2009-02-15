@@ -3,7 +3,6 @@ package de.jasminelli.sofleuse.actors
 import de.jasminelli.sofleuse.core._
 
 import scala.actors.Actor
-import scala.actors.Actor.loopWhile
 
 /**
  * Default implementation trait for an Actor that is a ResponsivePlayer
@@ -18,9 +17,9 @@ trait StageActor extends LoopingActor with ResponsivePlayer {
   final type Scene = this.type => Unit
 
   /**
-   * Main loop of this actor, receives messages and matches them with matcher
+   * Main loop body of this actor, receives messages and matches them with matcher
    */
-  override protected def mainLoop =  receive(matcher)
+  override protected def mainLoopBody = receive(matcher)
 
 
   /**
@@ -166,10 +165,9 @@ object StageActor {
    *
    * @author Stefan Plantikow <Stefan.Plantikow@googlemail.com>
    */
-  trait Reacting {
-    this: StageActor =>
+  trait Reacting extends StageActor {
 
-    protected def mainLoop = react(matcher)
+    override protected def mainLoopBody = react(matcher)
   }
 
   

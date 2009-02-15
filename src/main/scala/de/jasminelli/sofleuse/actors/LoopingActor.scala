@@ -1,7 +1,6 @@
 package de.jasminelli.sofleuse.actors
 
 import scala.actors.Actor
-import scala.actors.Actor.loopWhile
 
 /**
  * Support for simple actors that consist of a single react/receive loop with apropriate hooks
@@ -24,17 +23,17 @@ trait LoopingActor extends Actor {
    */
   def act(): Unit = {
     onStartActing
-    loopWhile(isRunning) {
-      mainLoop
-      if (!isRunning) onStopActing
-    }
+    mainLoop
+    if (!isRunning) onStopActing
   }
 
 
-  /**
-   * Does nothing.  Override in subtypes.
+ /**
+   * Main loop of this actor, receives messages and matches them with matcher
    */
-  protected def mainLoop: Unit = ()
+  protected def mainLoop: Unit = if (isRunning) { mainLoopBody; return mainLoop }
+
+  protected def mainLoopBody: Unit
 
 
   /**
