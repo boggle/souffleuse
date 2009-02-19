@@ -15,7 +15,7 @@ import util.Barrier
  * Originally created by User: stepn Date: 15.02.2009 Time: 15:10:14
  */
 
-class ACDCBench(params: BenchParams) extends RpcBench(params) {
+class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(params, verific) {
   var first: BenchStage = null
 
 
@@ -65,7 +65,7 @@ class ACDCBench(params: BenchParams) extends RpcBench(params) {
          _ <- Play.compute {
                 assert(list.head == rqStage.verify, "Verification failed, stages not passed correctly!")
                 sleep(params.workDur)
-                incrStagesPassed
+                verific.incrStagesPassed
                 if (stage.next == null) cont(count)(stage)
                 else sendRequest(count + 1, list.tail, stage.next, cont)
          })

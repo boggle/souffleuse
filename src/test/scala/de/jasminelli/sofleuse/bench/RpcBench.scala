@@ -7,49 +7,11 @@ import scala.actors.{Actor, Channel, ActorGC}
 import util.Barrier
 
 /**
- * Parameters to a run of a RpcBench instance
- * 
- * @author Stefan Plantikow<Stefan.Plantikow@googlemail.com>
- *
- * Originally created by User: stepn Date: 13.02.2009 Time: 15:30:08
- */
-final case class BenchParams(val load: RqLoad,
-                             val workDur: Long,
-                             val numStages: Int,
-                             val warmUp: Int, val times: Int);
-
-abstract sealed class RqLoad(val numRequests: Int) {
-  val requiredRequests = numRequests
-  val numObligations = numRequests
-}
-
-case class LinRqLoad(requests: Int) extends RqLoad(requests) ;
-
-case class BulkRqLoad(requests: Int) extends RqLoad(requests) ;
-
-case class ParRqLoad(requests: Int, val numPartitions: Int) extends RqLoad(requests) {
-  assert(((numRequests/numPartitions) * numPartitions) == numRequests)
-}
-
-case class NBParRqLoad(requests: Int, val numPartitions: Int) extends RqLoad(requests) {
-  assert(numPartitions > 0)
-
-  override val numObligations = numPartitions +
-    (if ((numRequests % numPartitions) == 0) 0 else 1)
-}
-
-
-/**
  * Abstract super class of sofleuse vs. classic-scala ping-pong actor messaging benchmark
  */
-abstract class RpcBench(params: BenchParams) {
+abstract class RpcBench(params: BenchParams, verific: Verificator) {
   private var _verifyList: List[Byte] = null
   protected def verifyList = synchronized { _verifyList }
-
-  private var _rqStageCount: AtomicInteger = new AtomicInteger(0)
-  protected def stagesPassed = _rqStageCount.get
-  protected def incrStagesPassed = _rqStageCount.incrementAndGet
-  protected def resetStagesPassed = _rqStageCount.set(0)
 
 
   def startup: Barrier
@@ -72,8 +34,8 @@ abstract class RpcBench(params: BenchParams) {
 
   def executeOnce(): Long = {
     try {
-      _verifyList = genList
-      resetStagesPassed
+      _verifyList = verific.generateList(params.numStages)
+      verific.resetStagesPassed
       
       Console.print("(" + threadCount)
       val startBarrier = startup
@@ -88,7 +50,7 @@ abstract class RpcBench(params: BenchParams) {
       Actor.clearSelf
       ActorGC.gc
       System.gc
-      assert(stagesPassed == params.numStages * params.load.numRequests)
+      assert(verific.testStagesPassed(params.numStages * params.load.numRequests))
     }
   }
 
@@ -181,7 +143,4 @@ abstract class RpcBench(params: BenchParams) {
       } while (now < end)
     }
   }
-
-  private def genList: List[Byte] =
-    (for (_ <- 0.until(params.numStages)) yield (Math.random*256.0).byteValue).toList
 }

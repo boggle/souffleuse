@@ -11,7 +11,8 @@ import scala.collection.immutable._
  *
  * Originally created by User: stepn Date: 15.02.2009 Time: 15:10:47
  */
-class PingPongBench(params: BenchParams) extends RpcBench(params) {
+class PingPongBench(params: BenchParams, verific: Verificator)
+        extends RpcBench(params, verific: Verificator) {
   private var stages: Array[Actor] = null
 
   class BenchStage(obl: Barrier#Obligation, sid: Int, verify: Byte) extends LoopingActor {
@@ -26,7 +27,7 @@ class PingPongBench(params: BenchParams) extends RpcBench(params) {
         case (lst: List[Byte]) => {
           sleep(params.workDur);
           assert(lst.head == verify, "Verification failed, stages not passed correctly!")
-          incrStagesPassed
+          verific.incrStagesPassed
           Actor.reply((sid + 1, lst.tail)) 
         }
         case (someObl: Barrier#Obligation) => { shutdownAfterScene; finalObl = someObl }
