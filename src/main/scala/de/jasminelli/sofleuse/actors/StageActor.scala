@@ -161,17 +161,6 @@ object StageActor {
 
   
   /**
-   * StageActors that want to use react instead of receive should include this trait
-   *
-   * @author Stefan Plantikow <Stefan.Plantikow@googlemail.com>
-   */
-  trait Reacting extends StageActor {
-
-    override protected def mainLoopBody = react(matcher)
-  }
-
-  
-  /**
    * Used to signal a premature end of scene execution
    *
    * @see StageActor.finishScene

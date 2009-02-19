@@ -31,7 +31,7 @@ trait LoopingActor extends Actor {
  /**
    * Main loop of this actor, receives messages and matches them with matcher
    */
-  protected def mainLoop: Unit = if (isRunning) { mainLoopBody; return mainLoop }
+  protected def mainLoop: Unit = while (isRunning) mainLoopBody
 
   protected def mainLoopBody: Unit
 

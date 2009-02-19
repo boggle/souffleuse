@@ -16,68 +16,41 @@ import scala.actors.Actor._
  *   Console.println("Yep.")
  *
  * Notes: All obligations must be acquired before calling await; await may only be
- * called in the actor that instantiated the barrier; barriers can be reused by calling
- * reset after await.
+ * called in the actor that instantiated the barrier; barriers can be used only once
  *
- * @author Stefan Plantikow<plantikow@zib.de>
+ * @author Stefan Plantikow<stefan.plantikow@googlemail.com>
  *
  * Originally created by User: stepn Date: 15.02.2009 Time: 04:29:14
  */
 
-class Barrier(tag: Any) {
-  // Channel
-  private val chan: Channel[Any] = new Channel[Any](Actor.self)
+class Barrier(tag: Any, size: Int) {
+  val channel: Channel[Any] = new Channel[Any](Actor.self)
 
-  @volatile private var waiting = false /* if true, we're in await() */
-  @volatile private var outstanding: Int = 0 /* obligations yet to be fulfilled */
+  sealed case class Obligation(nr: Int) { self: Obligation => def fullfill = channel ! self }
 
-  class Obligation {
-    self: Barrier#Obligation =>
+  var freeObligations: List[Obligation] = 0.until(size).toList.map { id => Obligation(id) }
 
-    @volatile 
-    private var fullfilled: Boolean = false
-
-    def fullfill(): Unit = synchronized {
-      if (fullfilled == true)
-        throw new IllegalStateException(tag+ "-Obligation already fullfilled " + this)
-      else {
-        chan ! self
-        fullfilled = true
-      }
-    }
-  }
+  var openObligations: Set[Obligation] = collection.immutable.HashSet.empty[Obligation]
 
   def newObligation: Obligation = synchronized {
-    if (waiting)
-      throw new IllegalStateException("Cant create new obligations while barrier is waiting")
-    outstanding = outstanding + 1;
-    new Obligation()
+    if (freeObligations.isEmpty) throw new IllegalStateException("No obligations left")
+    val ret = freeObligations.head
+    freeObligations = freeObligations.tail
+    openObligations = openObligations + ret
+    ret
   }
 
   def await: Unit = {
-    synchronized {
-      if (waiting == false)
-          waiting = true
-        else
-          throw new IllegalStateException("Already waiting")
-    }
-    recAwait
+    while (! readyToGo) ()
+
+    while (! done)
+      channel.receive {
+        case (o: Obligation) => synchronized { openObligations = openObligations - o }
+        case _ => throw new IllegalArgumentException("Invalid obligation from channel")
+      }
   }
 
-  private def recAwait: Unit = if (outstanding > 0) { chan.receive(matcher); return recAwait }
+  private def readyToGo = synchronized { freeObligations.isEmpty }
 
-  protected val matcher: PartialFunction[Any, Unit] = {
-        case (obl: Barrier#Obligation) =>
-          outstanding = outstanding - 1
-        case argl => {
-          throw new IllegalArgumentException("Invalid obligation encountered: " + argl)
-       }
-  }
-
-
-  def reset = synchronized {
-    if (outstanding > 0)
-      throw new IllegalStateException("Outstanding obligations")
-      else { outstanding = 0; waiting = false }
-  }
+  private def done = synchronized { openObligations.isEmpty }
 }
