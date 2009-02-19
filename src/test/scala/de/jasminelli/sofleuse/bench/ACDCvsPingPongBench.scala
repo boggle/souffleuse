@@ -7,14 +7,16 @@ package de.jasminelli.sofleuse.bench
  * Originally created by User: stepn Date: 15.02.2009 Time: 15:12:28
  */
 object ACDCvsPingPongBench {
+  val warmup = 1
+  val tries = 9
 
   def runOnce(tag: String, cores: Int, dur: Long, stages: Int, rq: Int) = {
     val partitions = cores * 2
     val load = if (rq < partitions) BulkRqLoad(rq) else NBParRqLoad(rq, partitions)
     if ("acdc" == tag)
-        new ACDCBench(BenchParams(load, dur, stages, 1, 9)).generateResult(tag);
+        new ACDCBench(BenchParams(load, dur, stages, warmup, tries)).generateResult(tag);
     else if ("ppng" == tag)
-      new PingPongBench(BenchParams(load, dur, stages, 1, 9)).generateResult(tag);
+      new PingPongBench(BenchParams(load, dur, stages, warmup, tries)).generateResult(tag);
     else
       throw new IllegalArgumentException("Oops")
   }

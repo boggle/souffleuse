@@ -19,7 +19,7 @@ class ACDCBench(params: BenchParams) extends RpcBench(params) {
   var first: BenchStage = null
 
 
-  class BenchStage(obl: Barrier#Obligation, val next: BenchStage) extends StageActor {
+  class BenchStage(obl: Barrier#Obligation, val next: BenchStage, val verify: Byte) extends StageActor {
     var finalObl: Barrier#Obligation = null
 
     override def onStartActing = {
@@ -48,25 +48,33 @@ class ACDCBench(params: BenchParams) extends RpcBench(params) {
 
   def startup: Barrier = {
     val bar = new Barrier('startup, params.numStages)
-    first = 0.until(params.numStages).foldRight[BenchStage](null)
-              { (id, next) => new BenchStage(bar.newObligation, next) }
+    first = null
+    var last: BenchStage = null
+    var list = verifyList.reverse
+    for (id <- 0.until(params.numStages)) {
+      last = new BenchStage(bar.newObligation, last, list.head)
+      list = list.tail
+    }
+    first = last
     bar
   }
 
 
-  def sendRequest(count: Int, rqStage: BenchStage, cont: (Int => BenchStage => Unit)): Unit =
+  def sendRequest(count: Int, list: List[Byte], rqStage: BenchStage, cont: (Int => BenchStage => Unit)): Unit =
     (for (stage <- Play.goto(rqStage);
          _ <- Play.compute {
+                assert(list.head == rqStage.verify, "Verification failed, stages not passed correctly!")
                 sleep(params.workDur)
+                incrStagesPassed
                 if (stage.next == null) cont(count)(stage)
-                else sendRequest(count + 1, stage.next, cont)
+                else sendRequest(count + 1, list.tail, stage.next, cont)
          })
     yield ()).respond { _ => () }
 
 
   override def request(obl: Barrier#Obligation): Int = {
     var chan: Channel[Any] = new Channel[Any](Actor.self)
-    sendRequest(1, first, { (count: Int) => { _  => chan ! count;  } })
+    sendRequest(1, verifyList, first, { (count: Int) => { _  => chan ! count;  } })
     chan.receive {
       case (count: Int) => return count 
       case (x: Any) => throw new IllegalStateException("Unexpected or wrong result")
@@ -78,7 +86,7 @@ class ACDCBench(params: BenchParams) extends RpcBench(params) {
     // Send out bulk of requests
     for (r <- 0.until(numRqs)) {
       val chan: Channel[Any] = new Channel[Any](Actor.self)
-      sendRequest(1, first, { (count: Int) => { _  => chan ! count;  } })
+      sendRequest(1, verifyList, first, { (count: Int) => { _  => chan ! count;  } })
     }
 
     // Wait for results from all / global completion of partition
@@ -86,6 +94,8 @@ class ACDCBench(params: BenchParams) extends RpcBench(params) {
     while (outstanding > 0)
       Actor.self.receive {
         case !(ch: Channel[Any], count: Int) => {
+          if (count != params.numStages)
+            throw new IllegalStateException("Unexpected or wrong stage count: " + count)
           outstanding = outstanding - 1
         }
         case _ => throw new IllegalStateException("Unexpected or wrong result message")

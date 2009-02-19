@@ -2,6 +2,7 @@ package de.jasminelli.sofleuse.bench
 
 import actors.{SceneCapturing, StageActor, LoopingActor}
 import de.jasminelli.sofleuse.core.Play
+import java.util.concurrent.atomic.AtomicInteger
 import scala.actors.{Actor, Channel, ActorGC}
 import util.Barrier
 
@@ -33,7 +34,8 @@ case class ParRqLoad(requests: Int, val numPartitions: Int) extends RqLoad(reque
 case class NBParRqLoad(requests: Int, val numPartitions: Int) extends RqLoad(requests) {
   assert(numPartitions > 0)
 
-  override val numObligations = numPartitions
+  override val numObligations = numPartitions +
+    (if ((numRequests % numPartitions) == 0) 0 else 1)
 }
 
 
@@ -41,6 +43,15 @@ case class NBParRqLoad(requests: Int, val numPartitions: Int) extends RqLoad(req
  * Abstract super class of sofleuse vs. classic-scala ping-pong actor messaging benchmark
  */
 abstract class RpcBench(params: BenchParams) {
+  private var _verifyList: List[Byte] = null
+  protected def verifyList = synchronized { _verifyList }
+
+  private var _rqStageCount: AtomicInteger = new AtomicInteger(0)
+  protected def stagesPassed = _rqStageCount.get
+  protected def incrStagesPassed = _rqStageCount.incrementAndGet
+  protected def resetStagesPassed = _rqStageCount.set(0)
+
+
   def startup: Barrier
 
   def request(obl: Barrier#Obligation): Int
@@ -61,6 +72,9 @@ abstract class RpcBench(params: BenchParams) {
 
   def executeOnce(): Long = {
     try {
+      _verifyList = genList
+      resetStagesPassed
+      
       Console.print("(" + threadCount)
       val startBarrier = startup
       startBarrier.await
@@ -74,16 +88,19 @@ abstract class RpcBench(params: BenchParams) {
       Actor.clearSelf
       ActorGC.gc
       System.gc
+      assert(stagesPassed == params.numStages * params.load.numRequests)
     }
   }
 
   def threadCount = {
     Thread.currentThread.getThreadGroup.activeCount
   }
+
   def generateLoad: Barrier = {
     val bar = new Barrier('load, params.load.numObligations)
 
     params.load match {
+      /* Old suff */
       case (load: LinRqLoad) =>
         for (r <- 0.until(load.numRequests))
           doRequest(bar.newObligation)
@@ -108,14 +125,21 @@ abstract class RpcBench(params: BenchParams) {
         }
       }
 
+      /* This is the relevant one for the actual benchmark */
       case (load: NBParRqLoad) => {
         val requestsPerActor = load.numRequests/load.numPartitions
         val remainingRequests = load.numRequests % load.numPartitions
         for (p <- 0.until(load.numPartitions)) {
           val obl = bar.newObligation
-          val rqs = if ((p+1) == load.numPartitions) remainingRequests else requestsPerActor
           Actor.actor {
-            parRequests(obl, rqs)
+            parRequests(obl, requestsPerActor)
+            Actor.self.exit
+          }
+        }
+        if (remainingRequests > 0) {
+          val obl = bar.newObligation
+          Actor.actor {
+            parRequests(obl, remainingRequests)
             Actor.self.exit
           }
         }
@@ -157,4 +181,7 @@ abstract class RpcBench(params: BenchParams) {
       } while (now < end)
     }
   }
+
+  private def genList: List[Byte] =
+    (for (_ <- 0.until(params.numStages)) yield (Math.random*256.0).byteValue).toList
 }
