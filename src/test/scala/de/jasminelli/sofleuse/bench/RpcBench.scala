@@ -9,18 +9,52 @@ import util.Barrier
 /**
  * Abstract super class of sofleuse vs. classic-scala ping-pong actor messaging benchmark
  */
-abstract class RpcBench(params: BenchParams, verific: Verificator) {
+abstract class RpcBench[T](params: BenchParams, verific: Verificator) {
+  type ActorType <: Actor
+
+  var first: ActorType = null.asInstanceOf[ActorType]
+
   private var _verifyList: List[Byte] = null
   protected def verifyList = synchronized { _verifyList }
 
 
-  def startup: Barrier
+  def startup: Barrier = {
+    val bar = new Barrier('startup, params.numStages)
+    first = null.asInstanceOf[ActorType]
+    var last: ActorType = null.asInstanceOf[ActorType]
+    var list = verifyList.reverse
+    for (id <- 0.until(params.numStages)) {
+      last = mkStage(bar.newObligation, last, list.head)
+      list = list.tail
+      first = last
+    }
+    bar
+  }
 
-  def request(obl: Barrier#Obligation): Int
+  def mkStage(obl: Barrier#Obligation, next: ActorType, verifyByte: Byte): ActorType
 
-  def parRequests(obl: Barrier#Obligation, numRqs: Int): Unit
+  def nextStage(stage: ActorType): ActorType
+  
+  def parRequests(obl: Barrier#Obligation, numRqs: Int): Unit = {
+    doParRequests(numRqs)
+    obl.fullfill
+  }
 
-  def shutdown: Barrier
+  def doParRequests(numRqs: Int): Unit
+
+  def shutdown: Barrier = {
+    var stages: List[ActorType] = List()
+    var cur: ActorType = first
+    while (cur != null) {
+      stages = List(cur) ++ stages
+      cur = nextStage(cur)
+    }
+
+    val bar = new Barrier('shutdown, stages.length)
+    for (stage <- stages)
+      stage ! bar.newObligation
+    bar
+  }
 
   def execute: Long = {
     Console.print("# ")
@@ -65,12 +99,12 @@ abstract class RpcBench(params: BenchParams, verific: Verificator) {
       /* Old suff */
       case (load: LinRqLoad) =>
         for (r <- 0.until(load.numRequests))
-          doRequest(bar.newObligation)
+          parRequests(bar.newObligation, 1)
 
       case (load: BulkRqLoad) =>
         for (r <-0.until(load.numRequests)) {
             val obl = bar.newObligation
-            Actor.actor { doRequest(obl); Actor.self.exit }
+            Actor.actor { parRequests(obl, 1); Actor.self.exit }
         }
 
       case (load: ParRqLoad) => {
@@ -81,7 +115,7 @@ abstract class RpcBench(params: BenchParams, verific: Verificator) {
               actorObls(r) = bar.newObligation
             Actor.actor {
               for (r <- 0.until(requestsPerActor))
-                doRequest(actorObls(r))
+                parRequests(actorObls(r), 1)
               Actor.self.exit
             }
         }
@@ -112,11 +146,6 @@ abstract class RpcBench(params: BenchParams, verific: Verificator) {
     }
 
     bar
-  }
-
-  def doRequest(obl: Barrier#Obligation) = {
-    assert(request(obl) == params.numStages)
-    obl.fullfill
   }
 
   def generateResult(tag: String): Long = {

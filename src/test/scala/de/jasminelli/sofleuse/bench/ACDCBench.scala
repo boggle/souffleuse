@@ -16,16 +16,12 @@ import util.Barrier
  */
 
 class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(params, verific) {
-  var first: BenchStage = null
+  override type ActorType = BenchStage
 
+  class BenchStage(obl: Barrier#Obligation, val next: BenchStage, val verify: Byte)
+          extends StageActor with BenchActor {
 
-  class BenchStage(obl: Barrier#Obligation, val next: BenchStage, val verify: Byte) extends StageActor {
-    var finalObl: Barrier#Obligation = null
-
-    override def onStartActing = {
-      super.onStartActing;
-      obl.fullfill;
-    }
+    override protected val initialObl = obl
 
     override protected def onUnknownMessage(msg: Any):Unit = {
       msg match {
@@ -34,32 +30,14 @@ class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(para
       }
     }
 
-    override def onStopActing = {
-      super.onStopActing;
-      first = null
-      if (finalObl != null) {
-        finalObl.fullfill;
-      }
-    }
-
     start
   }
 
+  def mkStage(obl: Barrier#Obligation, next: ActorType, verifyByte: Byte) =
+    new BenchStage(obl, next, verifyByte)
 
-  def startup: Barrier = {
-    val bar = new Barrier('startup, params.numStages)
-    first = null
-    var last: BenchStage = null
-    var list = verifyList.reverse
-    for (id <- 0.until(params.numStages)) {
-      last = new BenchStage(bar.newObligation, last, list.head)
-      list = list.tail
-    }
-    first = last
-    bar
-  }
-
-
+  def nextStage(stage: BenchStage) = stage.next
+  
   def sendRequest(count: Int, list: List[Byte], rqStage: BenchStage, cont: (Int => BenchStage => Unit)): Unit =
     (for (stage <- Play.goto(rqStage);
          _ <- Play.compute {
@@ -72,17 +50,7 @@ class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(para
     yield ()).respond { _ => () }
 
 
-  override def request(obl: Barrier#Obligation): Int = {
-    var chan: Channel[Any] = new Channel[Any](Actor.self)
-    sendRequest(1, verifyList, first, { (count: Int) => { _  => chan ! count;  } })
-    chan.receive {
-      case (count: Int) => return count 
-      case (x: Any) => throw new IllegalStateException("Unexpected or wrong result")
-    }
-  }
-
-
-  def parRequests(obl: Barrier#Obligation, numRqs: Int) = {
+  def doParRequests(numRqs: Int) = {
     // Send out bulk of requests
     for (r <- 0.until(numRqs)) {
       val chan: Channel[Any] = new Channel[Any](Actor.self)
@@ -100,22 +68,5 @@ class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(para
         }
         case _ => throw new IllegalStateException("Unexpected or wrong result message")
       }
-
-    obl.fullfill
-  }
-
-
-  def shutdown: Barrier = {
-    var stages: List[BenchStage] = List()
-    var cur = first
-    while (cur != null) {
-      stages = List(cur) ++ stages
-      cur = cur.next
-    }
-
-    val bar = new Barrier('shutdown, stages.length)
-    for (stage <- stages)
-      stage ! bar.newObligation
-    bar
   }
 }
