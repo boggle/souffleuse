@@ -18,10 +18,13 @@ import util.Barrier
 class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(params, verific) {
   override type ActorType = BenchStage
 
-  class BenchStage(obl: Barrier#Obligation, val next: BenchStage, val verify: Byte)
+  class BenchStage(obl: Barrier#Obligation,
+                  val next: BenchStage, val nextId: Int, val verifyList: Array[Byte])
           extends StageActor with BenchActor {
 
     override protected val initialObl = obl
+
+    protected[ACDCBench] val verifyByte = verifyList(nextId - 1)
 
     override protected def onUnknownMessage(msg: Any):Unit = {
       msg match {
@@ -33,35 +36,34 @@ class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(para
     start
   }
 
-  def mkStage(obl: Barrier#Obligation, next: ActorType, verifyByte: Byte) =
-    new BenchStage(obl, next, verifyByte)
+  def mkStage(obl: Barrier#Obligation, next: BenchStage, nextId: Int, verifyList: Array[Byte]) =
+    new BenchStage(obl, next, nextId, verifyList)
 
   def nextStage(stage: BenchStage) = stage.next
   
-  def sendRequest(count: Int, list: List[Byte], rqStage: BenchStage, cont: (Int => BenchStage => Unit)): Unit =
+  def sendRequest(count: Int, list: Array[Byte], rqStage: BenchStage, cont: (Int => BenchStage => Unit)): Unit =
     (for (stage <- Play.goto(rqStage);
          _ <- Play.compute {
-                assert(list.head == rqStage.verify, "Verification failed, stages not passed correctly!")
                 sleep(params.workDur)
+                assert(list(count) == rqStage.verifyByte, "Verification failed, stages not passed correctly!")
                 verific.incrStagesPassed
-                if (stage.next == null) cont(count)(stage)
-                else sendRequest(count + 1, list.tail, stage.next, cont)
+                if (stage.next == null) cont(count + 1)(stage)
+                else sendRequest(count + 1, list, stage.next, cont)
          })
     yield ()).respond { _ => () }
 
 
   def doParRequests(numRqs: Int) = {
     // Send out bulk of requests
-    for (r <- 0.until(numRqs)) {
-      val chan: Channel[Any] = new Channel[Any](Actor.self)
-      sendRequest(1, verifyList, first, { (count: Int) => { _  => chan ! count;  } })
-    }
+    val selfActor = Actor.self
+    for (r <- 0.until(numRqs))
+      sendRequest(0, verifyList, first, { (count: Int) => { _  => selfActor ! count;  } })
 
     // Wait for results from all / global completion of partition
     var outstanding = numRqs
     while (outstanding > 0)
       Actor.self.receive {
-        case !(ch: Channel[Any], count: Int) => {
+        case (count: Int) => {
           if (count != params.numStages)
             throw new IllegalStateException("Unexpected or wrong stage count: " + count)
           outstanding = outstanding - 1

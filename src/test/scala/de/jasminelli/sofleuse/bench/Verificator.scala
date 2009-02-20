@@ -10,8 +10,8 @@ import java.util.concurrent.atomic.AtomicInteger
  * Originally created by User: stepn Date: 19.02.2009 Time: 18:47:26
  */
 sealed class Verificator {
-  def generateList(n: Int): List[Byte] =
-    (for (_ <- 0.until(n)) yield (Math.random*256.0).byteValue).toList
+  def generateList(n: Int): Array[Byte] =
+    new Array[Byte](n).map { _ => (Math.random*256.0).byteValue }
 
   def stagesPassed: Int = 0
 

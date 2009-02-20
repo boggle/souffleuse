@@ -14,24 +14,29 @@ abstract class RpcBench[T](params: BenchParams, verific: Verificator) {
 
   var first: ActorType = null.asInstanceOf[ActorType]
 
-  private var _verifyList: List[Byte] = null
+  private var _verifyList: Array[Byte] = null
   protected def verifyList = synchronized { _verifyList }
+
+  // useful for shutdown, avoids unneccesary list operations
+  protected var stages: Array[ActorType] = new Array[ActorType](params.numStages)
 
 
   def startup: Barrier = {
     val bar = new Barrier('startup, params.numStages)
     first = null.asInstanceOf[ActorType]
     var last: ActorType = null.asInstanceOf[ActorType]
-    var list = verifyList.reverse
-    for (id <- 0.until(params.numStages)) {
-      last = mkStage(bar.newObligation, last, list.head)
-      list = list.tail
-      first = last
+    for (count <- 0.until(params.numStages)) {
+      var nextId = params.numStages - count
+      var id = nextId - 1
+      last = mkStage(bar.newObligation, last, nextId, verifyList)
+      stages(id) = last
     }
+    first = last
     bar
   }
 
-  def mkStage(obl: Barrier#Obligation, next: ActorType, verifyByte: Byte): ActorType
+  def mkStage(obl: Barrier#Obligation,
+             next: ActorType, nextId: Int, verifyList: Array[Byte]):ActorType
 
   def nextStage(stage: ActorType): ActorType
   
@@ -43,22 +48,18 @@ abstract class RpcBench[T](params: BenchParams, verific: Verificator) {
   def doParRequests(numRqs: Int): Unit
 
   def shutdown: Barrier = {
-    var stages: List[ActorType] = List()
-    var cur: ActorType = first
-    while (cur != null) {
-      stages = List(cur) ++ stages
-      cur = nextStage(cur)
-    }
-
     val bar = new Barrier('shutdown, stages.length)
-    for (stage <- stages)
-      stage ! bar.newObligation
+    for (id <- 0.until(params.numStages)) {
+      stages(id) ! bar.newObligation
+      stages(id) = null.asInstanceOf[ActorType]
+    }
+    first = null.asInstanceOf[ActorType]
     bar
   }
 
   def execute: Long = {
     Console.print("# ")
-    0.until(params.warmUp).foreach { _ => executeOnce }
+    for (_ <- 0.until(params.warmUp)) executeOnce
     Console.print(" /* post-warmup */ ")
     val results: List[Long] =
       (for (i <- 0.until(params.times)) yield executeOnce).toList

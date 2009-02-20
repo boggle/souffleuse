@@ -14,16 +14,20 @@ import scala.collection.immutable._
 class PingPongBench(params: BenchParams, verific: Verificator) extends RpcBench(params, verific) {
   override type ActorType = BenchStage
 
-  class BenchStage(obl: Barrier#Obligation, val next: BenchStage, verify: Byte)
+  class BenchStage(obl: Barrier#Obligation,
+                  val next: BenchStage, val nextId: Int, val verifyList: Array[Byte])
           extends LoopingActor with BenchActor {
+
     override protected val initialObl = obl
 
+    protected val verifyByte = if (next == null) verifyList.last else verifyList(nextId - 1)
+
     def mainLoopBody =  receive {
-        case (lst: List[Byte]) => {
+        case (verify: Byte) => {
           sleep(params.workDur);
-          assert(lst.head == verify, "Verification failed, stages not passed correctly!")
+          assert(verifyByte == verify, "Verification failed, stages not passed correctly!")
           verific.incrStagesPassed
-          Actor.reply((next, lst.tail))
+          Actor.reply(nextId)
         }
         case (someObl: Barrier#Obligation) => { shutdownAfterScene; finalObl = someObl }
     }
@@ -31,30 +35,26 @@ class PingPongBench(params: BenchParams, verific: Verificator) extends RpcBench(
     start
   }
 
-  def mkStage(obl: Barrier#Obligation, next: BenchStage, verifyByte: Byte) =
-    new BenchStage(obl, next, verifyByte)
+  def mkStage(obl: Barrier#Obligation, next: BenchStage, nextId: Int, verifyList: Array[Byte]) =
+    new BenchStage(obl, next, if (next == null) -1 else nextId, verifyList)
 
   def nextStage(stage: BenchStage) = stage.next
 
   def doParRequests(numRqs: Int): Unit = {
     // Send out
     var outstanding: Int = numRqs
-    for (r <- 0.until(numRqs)) {
-      val chan = new Channel[Any](Actor.self)
-      first ! verifyList
-    }
+    for (r <- 0.until(numRqs))
+      first ! verifyList(0)
 
 
     // Collect and dispatch until done
     while (outstanding > 0) {
       Actor.self.receive {
-        case (result: (BenchStage, List[Byte])) =>  {
-          val next = result._1
-          if (next != null) {
-            next ! result._2
-          }
+        case (nextId: Int) =>  {
+          if (nextId >= 0)
+            stages(nextId) ! verifyList(nextId)
           else {
-            assert(result._2.isEmpty)
+            assert(nextId == -1)
             outstanding = outstanding - 1
           }
         }
