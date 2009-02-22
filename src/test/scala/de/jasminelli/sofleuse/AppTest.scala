@@ -1,7 +1,6 @@
-package de.jasminelli;
+package de.jasminelli.sofleuse.util;
 
 import junit.framework._
-import sofleuse.{RpcDemo, ExamplePlay};
 import Assert._;
 
 object AppTest {

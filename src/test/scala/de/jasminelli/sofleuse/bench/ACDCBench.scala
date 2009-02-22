@@ -47,7 +47,8 @@ class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(para
     (for (stage <- Play.goto(rqStage);
          _ <- Play.compute {
                 sleep(params.workDur)
-                assert(rqStage.verify(count), "Verification failed, stages not passed correctly!")
+                if (verific.stageBasedVerify)
+                  assert(rqStage.verify(count), "Verification failed, stages not passed correctly!")
                 verific.incrStagesPassed
                 if (stage.next == null) cont(count + 1, stage)
                 else sendRequest(count + 1, stage.next, cont)
@@ -59,7 +60,7 @@ class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(para
     // Send out bulk of requests
     val selfActor = Actor.self
     for (r <- 0.until(numRqs))
-      sendRequest(0, first, { (count: Int, stage: BenchStage) => selfActor ! count })
+      sendRequest(0, first, { (count: Int, stage: BenchStage) => selfActor.!(count) })
 
     // Wait for results from all / global completion of partition
     var outstanding = numRqs

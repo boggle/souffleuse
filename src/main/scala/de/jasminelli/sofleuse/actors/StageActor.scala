@@ -150,7 +150,7 @@ object StageActor {
   }
 
 
-  def sendScene[V <: StageActor](actor: Actor, k: V => Unit) = actor ! k
+  def sendScene[V <: StageActor](actor: Actor, k: V => Unit) = actor.!(k)
 
   /**
    * Thrown by StageActor to indicate that a message was not understood

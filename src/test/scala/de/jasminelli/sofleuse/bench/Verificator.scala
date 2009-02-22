@@ -19,6 +19,8 @@ sealed class Verificator {
   def resetStagesPassed: Unit = ()
 
   def testStagesPassed(rqStages: Int): Boolean = true
+
+  val stageBasedVerify = false
 }
 
 
@@ -32,6 +34,8 @@ final class CountingVerificator extends Verificator {
   override def resetStagesPassed = _rqStageCount.set(0)
 
   override def testStagesPassed(rqStages: Int): Boolean = rqStages == stagesPassed
+
+  override val stageBasedVerify = false
 }
 
 

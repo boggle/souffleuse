@@ -2,7 +2,6 @@ package de.jasminelli.sofleuse.bench
 
 import de.jasminelli.sofleuse.actors._
 import scala.actors._
-import scala.actors.Actor._
 import scala.Console
 import util.Barrier
 import scala.collection.immutable._
@@ -25,11 +24,13 @@ class PingPongBench(params: BenchParams, verific: Verificator) extends RpcBench(
     def mainLoopBody =  receive {
         case (verify: Byte) => {
           sleep(params.workDur);
-          assert(verifyByte == verify, "Verification failed, stages not passed correctly!")
+          if (verific.stageBasedVerify)
+            assert(verifyByte == verify, "Verification failed, stages not passed correctly!")
           verific.incrStagesPassed
-          Actor.reply(nextId)
+          reply(nextId)
         }
         case (someObl: Barrier#Obligation) => { shutdownAfterScene; finalObl = someObl }
+        case _ => ()
     }
 
     start
@@ -44,7 +45,7 @@ class PingPongBench(params: BenchParams, verific: Verificator) extends RpcBench(
     // Send out
     var outstanding: Int = numRqs
     for (r <- 0.until(numRqs))
-      first ! verifyList(0)
+      first.!(verifyList(0))
 
 
     // Collect and dispatch until done
@@ -52,7 +53,7 @@ class PingPongBench(params: BenchParams, verific: Verificator) extends RpcBench(
       Actor.self.receive {
         case (nextId: Int) =>  {
           if (nextId >= 0)
-            stages(nextId) ! verifyList(nextId)
+            stages(nextId).!(verifyList(nextId))
           else {
             assert(nextId == -1)
             outstanding = outstanding - 1
