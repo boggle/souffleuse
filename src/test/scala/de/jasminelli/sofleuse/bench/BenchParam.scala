@@ -10,7 +10,7 @@ package de.jasminelli.sofleuse.bench
 final case class BenchParams(val load: RqLoad,
                              val workDur: Long,
                              val numStages: Int,
-                             val warmUp: Int, val times: Int, val replyActors: Boolean);
+                             val warmUp: Int, val times: Int, val deferredSending: Boolean);
 
 abstract sealed class RqLoad(val numRequests: Int) {
   val requiredRequests = numRequests

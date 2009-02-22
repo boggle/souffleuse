@@ -45,7 +45,7 @@ trait LoopingActor extends Actor {
   /**
    * Called by main loop just before it finishes
    */
-  protected def onStopActing = ()
+  protected def onStopActing = exit
 
 
   /**

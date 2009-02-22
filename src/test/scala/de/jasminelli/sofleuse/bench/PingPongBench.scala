@@ -3,8 +3,8 @@ package de.jasminelli.sofleuse.bench
 import de.jasminelli.sofleuse.actors._
 import scala.actors._
 import scala.Console
-import util.Barrier
 import scala.collection.immutable._
+import util.{Barrier, DeferredSending}
 /**
  * @author Stefan Plantikow<plantikow@zib.de>
  *
@@ -15,7 +15,7 @@ class PingPongBench(params: BenchParams, verific: Verificator) extends RpcBench(
 
   class BenchStage(obl: Barrier#Obligation,
                   val next: BenchStage, val nextId: Int, val verifyList: Array[Byte])
-          extends LoopingActor with BenchActor {
+          extends LoopingActor with BenchActor with DeferredSending  {
 
     override protected val initialObl = obl
 
@@ -28,15 +28,24 @@ class PingPongBench(params: BenchParams, verific: Verificator) extends RpcBench(
             assert(verifyByte == verify, "Verification failed, stages not passed correctly!")
           verific.incrStagesPassed
           
-          if (params.replyActors) {
+          if (params.deferredSending) {
             val sender = this.sender
-            Actor.actor { sender.!(nextId) }
+            sendDeferred(sender, nextId)
           }
           else
             sender.!(nextId)
         }
         case (someObl: Barrier#Obligation) => { shutdownAfterScene; finalObl = someObl }
-        case _ => ()
+    }
+
+    override def onStartActing = {
+      super.onStartActing
+      if (params.deferredSending) startDeferredSending(Actor.self)
+    }
+
+    override def onStopActing = {
+      stopDeferredSending
+      super.onStopActing
     }
 
     start
@@ -59,12 +68,16 @@ class PingPongBench(params: BenchParams, verific: Verificator) extends RpcBench(
     // Collect and dispatch until done
     while (outstanding > 0) {
       // Console.println("outstanding: " + outstanding)
-      val nextId = selfActor.?.asInstanceOf[Int]
-      if (nextId >= 0)
-        stages(nextId).!(verifyList(nextId))
-      else {
-        assert(nextId == -1)
-        outstanding = outstanding - 1
+      selfActor.receive {
+        case (nextId: Int) =>
+          if (nextId >= 0)
+            stages(nextId).!(verifyList(nextId))
+          else {
+            assert(nextId == -1)
+            outstanding = outstanding - 1
+          }
+        case TIMEOUT => ()
+        case _ => throw new IllegalStateException("Unexpected or wrong result message")
       }
     }
   }

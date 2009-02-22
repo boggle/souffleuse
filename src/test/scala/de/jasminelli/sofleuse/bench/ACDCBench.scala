@@ -5,8 +5,7 @@ import de.jasminelli.sofleuse.core.Play
 import de.jasminelli.sofleuse.actors._
 import scala.actors._
 import scala.actors.Actor._
-import util.Barrier
-
+import util.{Barrier, DeferredSending}
 /**
  * ThingAMagic.
  * 
@@ -20,7 +19,7 @@ class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(para
 
   class BenchStage(obl: Barrier#Obligation,
                   val next: BenchStage, val nextId: Int, val verifyList: Array[Byte])
-          extends StageActor with BenchActor {
+          extends StageActor with BenchActor with DeferredSending {
 
     override protected val initialObl = obl
 
@@ -33,6 +32,16 @@ class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(para
         case (shutdownObl: Barrier#Obligation) => { shutdownAfterScene; finalObl = shutdownObl }
         case _ => throw new StageActor.UnknownMessageException
       }
+    }
+
+    override def onStartActing = {
+      super.onStartActing
+      if (params.deferredSending) startDeferredSending(Actor.self)
+    }
+
+    override def onStopActing = {
+      stopDeferredSending
+      super.onStopActing
     }
 
     start
@@ -60,8 +69,8 @@ class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(para
     // Send out bulk of requests
     val selfActor = Actor.self
 
-    val replier = if (params.replyActors) {
-      { (count: Int, stage: BenchStage) => Actor.actor { selfActor.!(count); Actor.self.exit }; () }     
+    val replier = if (params.deferredSending) {
+      { (count: Int, stage: BenchStage) => stage.sendDeferred (selfActor, count) }
     }
     else { (count: Int, stage: BenchStage) => selfActor.!(count) }
 

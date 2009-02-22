@@ -39,7 +39,7 @@ object ExamplePlay {
             println("< Hah! If I work harder, I might be allowed to idle " + sceneStr + ".")
         }
 
-        override def onStopActing = println("Shutdown!")
+        override def onStopActing = { println("Shutdown!"); super.onStopActing }
 
         def println(p: String) =
           Console.println("[Thread: " + Thread.currentThread.getId + "] " + p)

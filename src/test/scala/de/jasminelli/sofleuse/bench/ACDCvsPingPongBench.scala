@@ -11,11 +11,18 @@ object ACDCvsPingPongBench {
   val tries = 9 // median of tries is result, each try is n requests over given stages
 
   def runOnce(tag: String, cores: Int, dur: Long, stages: Int, rq: Int) = {
+    // cores-parameter      load
+    // >0                   NB cores (if rq < cores => bulk)
+    // =0                   NB stages (if rq < stages => bulk)
+    // -1                   lin
+    // -2                   bulk
     val load = if (cores >= 0) {
       val partitions = if (cores == 0) stages else cores    
      if (rq < partitions) BulkRqLoad(rq) else NBParRqLoad(rq, partitions)
     }
-    else BulkRqLoad(rq)
+    else {
+      if (cores == -1) LinRqLoad(rq) else BulkRqLoad(rq)
+    }
 
     val verific = new PlainVerificator
 

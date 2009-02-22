@@ -105,7 +105,7 @@ abstract class RpcBench[T](params: BenchParams, verific: Verificator) {
       case (load: BulkRqLoad) =>
         for (r <-0.until(load.numRequests)) {
             val obl = bar.newObligation
-            Actor.actor { parRequests(obl, 1); Actor.self.exit }
+            Actor.actor { parRequests(obl, 1) }
         }
 
       case (load: ParRqLoad) => {
@@ -117,7 +117,6 @@ abstract class RpcBench[T](params: BenchParams, verific: Verificator) {
             Actor.actor {
               for (r <- 0.until(requestsPerActor))
                 parRequests(actorObls(r), 1)
-              Actor.self.exit
             }
         }
       }
@@ -130,14 +129,12 @@ abstract class RpcBench[T](params: BenchParams, verific: Verificator) {
           val obl = bar.newObligation
           Actor.actor {
             parRequests(obl, requestsPerActor)
-            Actor.self.exit
           }
         }
         if (remainingRequests > 0) {
           val obl = bar.newObligation
           Actor.actor {
             parRequests(obl, remainingRequests)
-            Actor.self.exit
           }
         }
       }

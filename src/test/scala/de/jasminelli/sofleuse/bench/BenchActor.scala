@@ -23,8 +23,8 @@ trait BenchActor extends LoopingActor {
   }
 
   override protected def onStopActing = {
-    super.onStopActing
     if (finalObl != null)
       finalObl.fullfill
+    super.onStopActing
   }
 }
