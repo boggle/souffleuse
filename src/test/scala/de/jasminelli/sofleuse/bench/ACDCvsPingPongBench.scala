@@ -49,11 +49,16 @@ object ACDCvsPingPongBench {
       // number of requests per try
       val rq = Integer.parseInt(args(2))
       // number of stages
-      for (stages <- List(1, 2, 3, 4, 8, 12, 16, 20, 24, 28, 32, 48, 64))
+      val stages =
+        if (cores < 0)
+          List(1, 2, 3, 4, 8, 12, 16, 20, 24, 28, 32, 48, 56, 64)
+        else
+          List(1, 2, 3, 4, 8, 12, 16, 20, 24, 28, 32, 48, 64, 80, 96, 128)
+      for (stageParam <- stages)
       {
-        Console.format("acdc %s %s %s %s\n", cores, dur, stages, rq)
+        Console.format("acdc %s %s %s %s\n", cores, dur, stageParam, rq)
         // Console.format("acdc_r %s %s %s %s\n", cores, dur, stages, rq)
-        Console.format("ppng %s %s %s %s\n", cores, dur, stages, rq)
+        Console.format("ppng %s %s %s %s\n", cores, dur, stageParam, rq)
         // Console.format("ppng_r %s %s %s %s\n", cores, dur, stages, rq)
       }
     }
