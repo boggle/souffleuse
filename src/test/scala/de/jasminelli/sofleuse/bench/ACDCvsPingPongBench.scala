@@ -21,9 +21,13 @@ object ACDCvsPingPongBench {
 
     (Symbol(tag) match {
       case 'acdc =>
-          new ACDCBench(BenchParams(load, dur, stages, warmup, tries), verific);
+          new ACDCBench(BenchParams(load, dur, stages, warmup, tries, false), verific);
+      case 'acdc_r =>
+          new ACDCBench(BenchParams(load, dur, stages, warmup, tries, true), verific);
       case 'ppng =>
-        new PingPongBench(BenchParams(load, dur, stages, warmup, tries), verific)
+        new PingPongBench(BenchParams(load, dur, stages, warmup, tries, false), verific)
+      case 'ppng_r =>
+        new PingPongBench(BenchParams(load, dur, stages, warmup, tries, true), verific)
       case _ =>
         throw new IllegalArgumentException("Oops")
     }).generateResult(tag)
@@ -41,7 +45,9 @@ object ACDCvsPingPongBench {
       for (stages <- List(1, 2, 3, 4, 8, 12, 16, 20, 24, 28, 32, 48, 64))
       {
         Console.format("acdc %s %s %s %s\n", cores, dur, stages, rq)
+        // Console.format("acdc_r %s %s %s %s\n", cores, dur, stages, rq)
         Console.format("ppng %s %s %s %s\n", cores, dur, stages, rq)
+        // Console.format("ppng_r %s %s %s %s\n", cores, dur, stages, rq)
       }
     }
     else {

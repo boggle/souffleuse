@@ -1,4 +1,4 @@
-package de.jasminelli.sofleuse.util;
+package de.jasminelli.sofleuse.util
 
 import junit.framework._
 import Assert._;

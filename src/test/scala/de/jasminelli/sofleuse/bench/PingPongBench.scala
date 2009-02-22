@@ -27,7 +27,13 @@ class PingPongBench(params: BenchParams, verific: Verificator) extends RpcBench(
           if (verific.stageBasedVerify)
             assert(verifyByte == verify, "Verification failed, stages not passed correctly!")
           verific.incrStagesPassed
-          reply(nextId)
+          
+          if (params.replyActors) {
+            val sender = this.sender
+            Actor.actor { sender.!(nextId) }
+          }
+          else
+            sender.!(nextId)
         }
         case (someObl: Barrier#Obligation) => { shutdownAfterScene; finalObl = someObl }
         case _ => ()
@@ -42,6 +48,8 @@ class PingPongBench(params: BenchParams, verific: Verificator) extends RpcBench(
   def nextStage(stage: BenchStage) = stage.next
 
   def doParRequests(numRqs: Int): Unit = {
+    val selfActor = Actor.self
+
     // Send out
     var outstanding: Int = numRqs
     for (r <- 0.until(numRqs))
@@ -50,16 +58,13 @@ class PingPongBench(params: BenchParams, verific: Verificator) extends RpcBench(
 
     // Collect and dispatch until done
     while (outstanding > 0) {
-      Actor.self.receive {
-        case (nextId: Int) =>  {
-          if (nextId >= 0)
-            stages(nextId).!(verifyList(nextId))
-          else {
-            assert(nextId == -1)
-            outstanding = outstanding - 1
-          }
-        }
-        case _ => throw new IllegalStateException("Unexpected or wrong result message")
+      // Console.println("outstanding: " + outstanding)
+      val nextId = selfActor.?.asInstanceOf[Int]
+      if (nextId >= 0)
+        stages(nextId).!(verifyList(nextId))
+      else {
+        assert(nextId == -1)
+        outstanding = outstanding - 1
       }
     }
   }

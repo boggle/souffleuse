@@ -59,13 +59,19 @@ class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(para
   def doParRequests(numRqs: Int) = {
     // Send out bulk of requests
     val selfActor = Actor.self
+
+    val replier = if (params.replyActors) {
+      { (count: Int, stage: BenchStage) => Actor.actor { selfActor.!(count); Actor.self.exit }; () }     
+    }
+    else { (count: Int, stage: BenchStage) => selfActor.!(count) }
+
     for (r <- 0.until(numRqs))
-      sendRequest(0, first, { (count: Int, stage: BenchStage) => selfActor.!(count) })
+      sendRequest(0, first, replier)
 
     // Wait for results from all / global completion of partition
     var outstanding = numRqs
     while (outstanding > 0)
-      Actor.self.receive {
+      selfActor.receive {
         case (count: Int) => {
           if (count != params.numStages)
             throw new IllegalStateException("Unexpected or wrong stage count: " + count)
