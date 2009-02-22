@@ -26,6 +26,8 @@ class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(para
 
     protected[ACDCBench] val verifyByte = verifyList(nextId - 1)
 
+    def verify(idx: Int): Boolean = verifyList(idx) == verifyByte
+
     override protected def onUnknownMessage(msg: Any):Unit = {
       msg match {
         case (shutdownObl: Barrier#Obligation) => { shutdownAfterScene; finalObl = shutdownObl }
@@ -41,14 +43,14 @@ class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(para
 
   def nextStage(stage: BenchStage) = stage.next
   
-  def sendRequest(count: Int, list: Array[Byte], rqStage: BenchStage, cont: (Int => BenchStage => Unit)): Unit =
+  def sendRequest(count: Int, rqStage: BenchStage, cont: (Int, BenchStage) => Unit): Unit =
     (for (stage <- Play.goto(rqStage);
          _ <- Play.compute {
                 sleep(params.workDur)
-                assert(list(count) == rqStage.verifyByte, "Verification failed, stages not passed correctly!")
+                assert(rqStage.verify(count), "Verification failed, stages not passed correctly!")
                 verific.incrStagesPassed
-                if (stage.next == null) cont(count + 1)(stage)
-                else sendRequest(count + 1, list, stage.next, cont)
+                if (stage.next == null) cont(count + 1, stage)
+                else sendRequest(count + 1, stage.next, cont)
          })
     yield ()).respond { _ => () }
 
@@ -57,7 +59,7 @@ class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(para
     // Send out bulk of requests
     val selfActor = Actor.self
     for (r <- 0.until(numRqs))
-      sendRequest(0, verifyList, first, { (count: Int) => { _  => selfActor ! count;  } })
+      sendRequest(0, first, { (count: Int, stage: BenchStage) => selfActor ! count })
 
     // Wait for results from all / global completion of partition
     var outstanding = numRqs
