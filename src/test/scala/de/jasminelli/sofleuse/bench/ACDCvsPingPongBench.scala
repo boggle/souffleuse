@@ -1,6 +1,6 @@
 package de.jasminelli.sofleuse.bench
 /**
- * ThingAMagic.
+ * TCompare ACDCBenc againts PingPongBench 
  * 
  * @author Stefan Plantikow<plantikow@googlemail.com>
  *
@@ -24,6 +24,7 @@ object ACDCvsPingPongBench {
       if (cores == -1) LinRqLoad(rq) else BulkRqLoad(rq)
     }
 
+    // val verific = new CountingVerificator
     val verific = new PlainVerificator
 
     (Symbol(tag) match {

@@ -4,16 +4,16 @@ import junit.framework._
 import scala.actors.Actor
 
 /**
- * @see Barrier
+ * @see Latch
  * 
  * @author Stefan Plantikow<stefan.plantikow@googlemail.com> 
  *
  * Originally created by User: stepn Date: 15.02.2009 Time: 18:57:35
  */
 
-object BarrierTest {
+object LatchTest {
   def suite: Test = {
-      val suite = new TestSuite(classOf[BarrierTest]);
+      val suite = new TestSuite(classOf[LatchTest]);
       suite
   }
 
@@ -23,10 +23,10 @@ object BarrierTest {
 }
 
 
-class BarrierTest extends TestCase("app")  {
+class LatchTest extends TestCase("app")  {
 
   def testSync = {
-    val bar = new Barrier('test, 2)
+    val bar = new Latch('test, 2)
     val o1 = bar.newObligation
     val o2 = bar.newObligation
     Actor.actor { o1.fullfill }
@@ -36,7 +36,7 @@ class BarrierTest extends TestCase("app")  {
   }
 
   def testASync = {
-    val bar = new Barrier('test, 2)
+    val bar = new Latch('test, 2)
     Actor.actor { bar.newObligation.fullfill }
     Actor.actor { bar.newObligation.fullfill }
     bar.await

@@ -67,7 +67,7 @@
           <!-- Also valid: args arg and jvmArgs jvmArg -->
 		  <launcher><id>RpcDemo</id><mainClass>de.jasminelli.sofleuse.RpcDemo</mainClass></launcher>
 		  <launcher><id>ExamplePlay</id><mainClass>de.jasminelli.sofleuse.ExamplePlay</mainClass></launcher>
-		  <launcher><id>BarrierTest</id><mainClass>de.jasminelli.sofleuse.util.BarrierTest</mainClass></launcher>
+		  <launcher><id>LatchTest</id><mainClass>de.jasminelli.sofleuse.util.LatchTest</mainClass></launcher>
 		  <launcher>
               <id>Bench</id><mainClass>de.jasminelli.sofleuse.bench.ACDCvsPingPongBench</mainClass>
               <jvmArgs><jvmArg>-server</jvmArg></jvmArgs>

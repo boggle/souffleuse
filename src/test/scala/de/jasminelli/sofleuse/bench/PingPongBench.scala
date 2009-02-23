@@ -4,7 +4,7 @@ import de.jasminelli.sofleuse.actors._
 import scala.actors._
 import scala.Console
 import scala.collection.immutable._
-import util.{Barrier, DeferredSending}
+import util.{Latch, DeferredSending}
 /**
  * @author Stefan Plantikow<plantikow@zib.de>
  *
@@ -13,7 +13,7 @@ import util.{Barrier, DeferredSending}
 class PingPongBench(params: BenchParams, verific: Verificator) extends RpcBench(params, verific) {
   override type ActorType = BenchStage
 
-  class BenchStage(obl: Barrier#Obligation,
+  class BenchStage(obl: Latch#Obligation,
                   val next: BenchStage, val nextId: Int, val verifyList: Array[Byte])
           extends LoopingActor with BenchActor with DeferredSending  {
 
@@ -35,7 +35,7 @@ class PingPongBench(params: BenchParams, verific: Verificator) extends RpcBench(
           else
             sender.!(nextId)
         }
-        case (someObl: Barrier#Obligation) => { shutdownAfterScene; finalObl = someObl }
+        case (someObl: Latch#Obligation) => { shutdownAfterScene; finalObl = someObl }
     }
 
     override def onStartActing = {
@@ -51,7 +51,7 @@ class PingPongBench(params: BenchParams, verific: Verificator) extends RpcBench(
     start
   }
 
-  def mkStage(obl: Barrier#Obligation, next: BenchStage, nextId: Int, verifyList: Array[Byte]) =
+  def mkStage(obl: Latch#Obligation, next: BenchStage, nextId: Int, verifyList: Array[Byte]) =
     new BenchStage(obl, next, if (next == null) -1 else nextId, verifyList)
 
   def nextStage(stage: BenchStage) = stage.next
@@ -76,8 +76,7 @@ class PingPongBench(params: BenchParams, verific: Verificator) extends RpcBench(
             assert(nextId == -1)
             outstanding = outstanding - 1
           }
-        case TIMEOUT => ()
-        case _ => throw new IllegalStateException("Unexpected or wrong result message")
+        // case (msg: Any) => throw new IllegalStateException("Unexpected or wrong result message: " + msg)
       }
     }
   }

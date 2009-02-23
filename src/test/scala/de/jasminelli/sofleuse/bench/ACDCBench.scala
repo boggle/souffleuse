@@ -5,7 +5,7 @@ import de.jasminelli.sofleuse.core.Play
 import de.jasminelli.sofleuse.actors._
 import scala.actors._
 import scala.actors.Actor._
-import util.{Barrier, DeferredSending}
+import util.{Latch, DeferredSending}
 /**
  * ThingAMagic.
  * 
@@ -17,7 +17,7 @@ import util.{Barrier, DeferredSending}
 class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(params, verific) {
   override type ActorType = BenchStage
 
-  class BenchStage(obl: Barrier#Obligation,
+  class BenchStage(obl: Latch#Obligation,
                   val next: BenchStage, val nextId: Int, val verifyList: Array[Byte])
           extends StageActor with BenchActor with DeferredSending {
 
@@ -29,7 +29,7 @@ class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(para
 
     override protected def onUnknownMessage(msg: Any):Unit = {
       msg match {
-        case (shutdownObl: Barrier#Obligation) => { shutdownAfterScene; finalObl = shutdownObl }
+        case (shutdownObl: Latch#Obligation) => { shutdownAfterScene; finalObl = shutdownObl }
         case _ => throw new StageActor.UnknownMessageException
       }
     }
@@ -47,7 +47,7 @@ class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(para
     start
   }
 
-  def mkStage(obl: Barrier#Obligation, next: BenchStage, nextId: Int, verifyList: Array[Byte]) =
+  def mkStage(obl: Latch#Obligation, next: BenchStage, nextId: Int, verifyList: Array[Byte]) =
     new BenchStage(obl, next, nextId, verifyList)
 
   def nextStage(stage: BenchStage) = stage.next
@@ -86,7 +86,6 @@ class ACDCBench(params: BenchParams, verific: Verificator) extends RpcBench(para
             throw new IllegalStateException("Unexpected or wrong stage count: " + count)
           outstanding = outstanding - 1
         }
-        case _ => throw new IllegalStateException("Unexpected or wrong result message")
       }
   }
 }

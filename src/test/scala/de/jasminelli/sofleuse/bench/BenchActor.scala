@@ -1,7 +1,7 @@
 package de.jasminelli.sofleuse.bench
 
 import actors.LoopingActor
-import util.Barrier
+import util.Latch
 
 /**
  * ThingAMagic.
@@ -13,9 +13,9 @@ import util.Barrier
 
 trait BenchActor extends LoopingActor {
 
-  protected val initialObl: Barrier#Obligation
+  protected val initialObl: Latch#Obligation
   
-  @volatile protected var finalObl: Barrier#Obligation = null
+  @volatile protected var finalObl: Latch#Obligation = null
 
   override protected def onStartActing = {
     super.onStartActing

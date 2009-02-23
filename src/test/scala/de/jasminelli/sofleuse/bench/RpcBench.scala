@@ -4,7 +4,7 @@ import actors.{SceneCapturing, StageActor, LoopingActor}
 import de.jasminelli.sofleuse.core.Play
 import java.util.concurrent.atomic.AtomicInteger
 import scala.actors.{Actor, Channel, ActorGC}
-import util.Barrier
+import util.Latch
 
 /**
  * Abstract super class of sofleuse vs. classic-scala ping-pong actor messaging benchmark
@@ -21,8 +21,8 @@ abstract class RpcBench[T](params: BenchParams, verific: Verificator) {
   protected var stages: Array[ActorType] = new Array[ActorType](params.numStages)
 
 
-  def startup: Barrier = {
-    val bar = new Barrier('startup, params.numStages)
+  def startup: Latch = {
+    val bar = new Latch('startup, params.numStages)
     first = null.asInstanceOf[ActorType]
     var last: ActorType = null.asInstanceOf[ActorType]
     for (count <- 0.until(params.numStages)) {
@@ -35,20 +35,20 @@ abstract class RpcBench[T](params: BenchParams, verific: Verificator) {
     bar
   }
 
-  def mkStage(obl: Barrier#Obligation,
+  def mkStage(obl: Latch#Obligation,
              next: ActorType, nextId: Int, verifyList: Array[Byte]):ActorType
 
   def nextStage(stage: ActorType): ActorType
   
-  def parRequests(obl: Barrier#Obligation, numRqs: Int): Unit = {
+  def parRequests(obl: Latch#Obligation, numRqs: Int): Unit = {
     doParRequests(numRqs)
     obl.fullfill
   }
 
   def doParRequests(numRqs: Int): Unit
 
-  def shutdown: Barrier = {
-    val bar = new Barrier('shutdown, stages.length)
+  def shutdown: Latch = {
+    val bar = new Latch('shutdown, stages.length)
     for (id <- 0.until(params.numStages)) {
       stages(id) ! bar.newObligation
       stages(id) = null.asInstanceOf[ActorType]
@@ -73,8 +73,8 @@ abstract class RpcBench[T](params: BenchParams, verific: Verificator) {
       verific.resetStagesPassed
       
       Console.print("(" + threadCount)
-      val startBarrier = startup
-      startBarrier.await
+      val startLatch = startup
+      startLatch.await
       val startTime = System.currentTimeMillis
       generateLoad.await
       System.currentTimeMillis - startTime
@@ -93,14 +93,15 @@ abstract class RpcBench[T](params: BenchParams, verific: Verificator) {
     Thread.currentThread.getThreadGroup.activeCount
   }
 
-  def generateLoad: Barrier = {
-    val bar = new Barrier('load, params.load.numObligations)
+  def generateLoad: Latch = {
+    val bar = new Latch('load, params.load.numObligations)
 
     params.load match {
-      /* Old suff */
       case (load: LinRqLoad) =>
+        val obls = new Array[Latch#Obligation](load.numRequests)
         for (r <- 0.until(load.numRequests))
-          parRequests(bar.newObligation, 1)
+          obls(r) = bar.newObligation
+        for (r <- 0.until(load.numRequests)) parRequests(obls(r), 1)
 
       case (load: BulkRqLoad) =>
         for (r <-0.until(load.numRequests)) {
@@ -111,7 +112,7 @@ abstract class RpcBench[T](params: BenchParams, verific: Verificator) {
       case (load: ParRqLoad) => {
         val requestsPerActor = load.numRequests/load.numPartitions
         for (p <- 0.until(load.numPartitions)) {
-            val actorObls = new Array[Barrier#Obligation](requestsPerActor)
+            val actorObls = new Array[Latch#Obligation](requestsPerActor)
             for (r <- 0.until(requestsPerActor))
               actorObls(r) = bar.newObligation
             Actor.actor {
