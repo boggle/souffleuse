@@ -66,7 +66,7 @@ This reduces the understandability of the system and in turn makes it harder to 
 routing logic. Additionally, it makes it difficult to add new request types without changing the
 source code of existing stages and redeploying the system.
 
-// Problem definition
+// Problem deScription
 
 // Article overview
                                 
@@ -75,39 +75,63 @@ source code of existing stages and redeploying the system.
 
 // Actor Model
 
-// Continuations
-
-// Partial Continuations (?)
-
-                         
 
 \section{Request Routing}
 
-// Dissect Problem                          
+The application logic of event-driven architectures can be split into two categories. First,
+processing logic, is the part of application logic that necessarily must be executed at a specific
+stage in order to access resources or state that are only available locally. Second, the request
+routing logic describes how a given incoming request is handled by executing processing logic at
+many stages in some order. 
 
-Application logic of staged architectures can be split into three categories.  We call processing 
-logic, the part of application logic that necessarilyy must be executed at a specific stage in order
-to access a resource that is only
-                                                                                       
-          
-// Stage Logic vs Routing Logic
-                                                  
+Often, processing logic is contained implicitely in the event handling of single stages and the
+follow-up events created by them. It is this implicit containment that can make systems difficult to
+understand and modify.
+
+Additionally, request routing logic may be stateful, i.e. the result of executing processing logic
+at some stage may determine how and at which stages request handling needs to be continued. This
+places further burdens on the implementation of single stages, as incoming- and outgoing events need
+to be amended with the necessary state data, although it might be completely independent from the
+intended purpose of the stage.
+
+To give an example, imagine a simple system for launching satellites into space. Incoming
+reqeuests are amended with authentication information in the first stage. In the second stage, this
+information is then used to authorize the request and eventually launch the rocket. Only after the
+satellite has begun to operate, some third stage (i.e. the press office) is informed.  Now, imagine
+that the initial request needs to be amended with extra information (name and owner of satellite)
+for the press office.  Passing this information down requires modifying the events to and from
+the rocket launching stage with fields for the additional payload, although this extra information
+is of no importance to launching the rocket.
+
+This intertwining of processing and request routing logic is a case of insufficient separation of
+concerns, calling for a different way to describe both types of application logic.  Next, two 
+different approaches that address this issue are described.
+
+
 \subsection{Ping-Pong-Approach}
 
 A straightforward way to deal with this problem is to transfer the execution of the request routing
 logic to a separate stage. Requests enter the system as separate events at such a routing stage.
 This stage then continously forwards events to some stage, waits for a reply, and upon receipt,
 decides how to continue based on this and previous reply-events for the request. In the following,
-we will call this the ping-pong-approach.
-                               
-While this approach allows to write the event flow portion of the application logic in a single
-stage, it has two disadvantages
+this will be called the ping-pong-approach.
 
-// Statefulness
+While this approach allows to write the event flow portion of the application logic in a single
+stage, it has two disadvantages: First, it requires the creation of additional stages and the
+associated computational overhead. Second, and more importantly, it results in extra messages
+between request routing and regular processing stages.
+
 
 \subsection{Partial Actor Continuations}
 
 // PAC - Approach, requires introducing continuations somewhere
+              
+// Continuations
+
+// Partial Continuations (?)
+
+                         
+
 
 
 \section{Sofleuse: A DSL for Request Routing}
