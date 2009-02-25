@@ -30,7 +30,10 @@ class Merger(iters: Array[Iterator[String]], index: Int) {
 
   def column(l: String): Int = Integer.parseInt((l.split('\t')(index)).trim)
 
-  def isComment(s: String): Boolean = s.trim.startsWith("#")
+  def isComment(s: String): Boolean = {
+	val trimmed = s.trim
+	trimmed.length == 0 || trimmed.startsWith("#")
+  }
 
   def loop: Unit = doDropWhile match {
       case None => return
