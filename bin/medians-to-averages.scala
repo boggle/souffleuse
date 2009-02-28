@@ -19,10 +19,7 @@ class Converter(sumColumn: Int, numColumn: Int, tgtColumn: Int, lines: Iterator[
 
   def process(line: String) = {
 	var cols = line.split('\t')   
-	val newVal = cols(sumColumn) / cols(numColumn)
-	if (newVal != (cols(tgtColumn): Int))
-		Console.println("oops " + (cols(tgtColumn)-newVal))
-	cols(tgtColumn) = newVal
+	cols(tgtColumn) = cols(sumColumn) / cols(numColumn) 
 	(for (col <- cols)	
 		yield (col + "\t")).reduceLeft(_+_)
   }
