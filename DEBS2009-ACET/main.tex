@@ -108,7 +108,7 @@ concerns, calling for a different way to describe both types of application logi
 different approaches that address this issue are described.
 
 
-\subsection{Ping-Pong-Approach}
+\subsection{Ping-Pong Approach}
 
 A straightforward way to deal with this problem is to transfer the execution of the request routing
 logic to a separate stage. Requests enter the system as separate events at such a routing stage.
@@ -121,32 +121,102 @@ stage, it has two disadvantages: First, it requires the creation of additional s
 associated computational overhead. Second, and more importantly, it results in extra messages
 between request routing and regular processing stages.
 
+The ping-pong approach centralizes routing logic in a single place by introducing an additional
+stage. This can be understood as the consolidation of a control flow that otherwise would be
+scattered throughout the source code. Additionally, for each request, the routing stage stores
+intermediate results and associated state for reuse by later events, as well as provides the ability
+to pause a request's control flow while waiting for the execution of processing logic by some other
+stage.
+
+
 
 \subsection{Partial Actor Continuations}
 
-// PAC - Approach, requires introducing continuations somewhere
-              
-// Continuations
+Extracting routing logic requires a mechanism for \emph{pausable, stateful control-flow}.
+Introducing an extra stage is just one way to achive this. Other possible techniques are the use of
+coroutines or continuations. This article concentrates on the latter.
+                                                
+// google arbitrary often
 
-// Partial Continuations (?)
+// TODO: More on Continuations (?)
+
+The continuation of a computation describes the part of a computation that yet needs to be computed.
+Some programming languages, especially the scheme-dialect of lisp, provide means for explicitely
+capturing the continuation at runtime and by this allow it to be executed arbitrary often.  This
+can be used to implement new control structures inside the programming language.  
+                                
+// Parameterization
+
+This ability may be used to create pausable, stateful control-flow: Each stage only processes
+messages that actually are anonymous functions that represent the current continuation of some
+request. Such incoming continuations are executed by calling them with the executing stage as their
+sole argument. Through this means, request continuations gain access to the functionality of local
+stages.
+
+When the execution of a request continuation at a stage is about to finish, the follow-up 
+continuation may be captured in a last step.  This follow-up continuation is then simply sent
+to the next stage where request handling continues.  
+
+This approach does not require any intermediate stages for the execution of the request logic and
+through this avoids the additional messages of the ping-pong approach. It is also stateful, since
+continuations contain all visible state of their stack frame at capture time. On the downside, it
+requires some overhead for continuation capturing. The impact of these different properties will be
+shown in the evaluation section.
 
                          
 
 
 
-\section{Sofleuse: A DSL for Request Routing}
-    
-// Scala and Actors (briefly)
-          
-// Plays
+\section{Sofleuse: A Request Routing DSL}
+
+Now a framework for using partial actor continuations, Sofleuse, is presented. Sofleuse has been
+implemented in the Scala programming language using the scala actor's library. Sofleuse provides a
+domain specific language (DSL) for writing routing scripts that execute over a set of locally
+running actors.
+
+Routing script are implemented by subclassing the class Play and overriding the apply method. Play
+instances are provided with a set of DSL-commands for writing scripts. Additionally, Play places an
+upper bound on the type of actor-stages over which the routing script commands operate. To capture
+continuations, these commands are chained inside scala's CPS-transforming for-generator-expressions
+(explained below). The following command set is provided:
+
+\begin{itemize}                                   
+	\item \textbf{v <- remember(value)} Bind value to v for reuse by later routing decisions of the
+	script
+	\item \textbf{v <- compute(thunk)} Compute thunk at the current local stage.  The return value is bound
+	to v and may be reused in later routing decisions of the script
+	\item \textbf{v <- computeWith(o)(thunk)} Like compute but thunk takes o as its first argument
+	\item \textbf{s <- goto(stage)} Continue execution at stage and return a suitable reference s to gain 
+	access to the local processing logic of stage (usually the stage itself)
+	\item \textbf{s <- jump(thunk)} Continue execution at the stage returned as a result of executing thunk 
+	and return a suitable reference s to gain access to the local processing logic of stage (usually 
+	the stage itself)
+	\item \textbf{t <- cast[T](stage)} Like goto but cast the result of goto(s) to type T   
+	\item \textbf{yield(result)} The yield command of the for-expression may optionally be used to return 
+	a result to the initial caller of the script                           	
+	\item \textbf{endOfPlay} An empty generator expression to syntactically denote 
+	the end of a routing script that does not return a value to its caller.
+\end{itemize}                                                                                                  
+
+Routing scripts can also be written as simple for-expressions without using class Play.  This will
+usually involve more typecasts and the use of the untyped DSL-commands provided by the object Play.
+These for-expressions may be run using two additional commands of the DSL:
+
+\begin{itemize}
+	\item \textbf{asyncRun(for-expr)} Rus for-expr without waiting for a result (Non-Blocking)
+    \item \textbf{run(for-expr)} Run for-expr and wait until its execution yields a result (Blocks current actor)
+\end{itemize}	
 
 // Example
 
 // Describe execution
 
            
-\section{Implementation}
+\subsection{Implementation}
                   
+Sofleuse uses some of scala's unique features, like CPS-transform in generator-expressions,
+anonymous functions, and self-types. 
+
 // Scala and Actors (as needed for implementation)
 
 // CPS-Transform 
