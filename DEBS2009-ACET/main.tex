@@ -66,14 +66,28 @@ This reduces the understandability of the system and in turn makes it harder to 
 routing logic. Additionally, it makes it difficult to add new request types without changing the
 source code of existing stages and redeploying the system.
 
-// Problem deScription
+- Problem deScription\\
 
-// Article overview
+- Article overview\\
                                 
                          
 \section{Preliminaries}
 
-// Actor Model
+-Actor Model \\
+
+Scala is a multiparadigm programming language for the Java virtual machine that fuses objectoriented
+and functional techniques. Since Scala is statically typed, its compiler produces considerably fast
+code. At the same time, the languages includes features that are often only found in dynamically
+typed languages for the JVM. Sofleuse uses some of those, like CPS-transform in
+generator-expressions, anonymous functions, multiple inheritance and self-types.
+
+Additionally, the Scala standard library includes a rich set of concurrency primitives that
+implement different process calculi, like the join-calculus, the pi-calculus, and the actor model.
+Actors are available in two flavours: \textbf{react}-actors who get scheduled by the actor library
+piece-wise to different threads, and \textbf{receive}-actors that live in their on thread. Since
+stage-based architecture associate one thread with each stage, for the purposes of this article, 
+only \textbf{receive}-based actors are considered.
+
 
 
 \section{Request Routing}
@@ -198,16 +212,17 @@ continuations, commands are chained by using scala's CPS-transforming for-genera
 	gain access to the local processing logic of that stage
 	\item \textbf{\emph{t} <- cast[\emph{T}](\emph{stage})} Like \textbf{goto(\emph{stage})} but 
 	cast the result of \textbf{goto(\emph{stage})} to type \emph{T}   
-	\item \textbf{yield(result)} The yield command of the for-expression may optionally be used to 
+	\item \textbf{yield(result)} The yield statement of the for-expression may optionally be used to 
 	return a result to the initial caller of the script                           	
 	\item \textbf{endOfPlay} Syntactically denote the end of a routing script that does not return
 	 a value to its caller.
-\end{itemize}                                                                                                  
-                                                                            
-Play places an upper bound on the type of actor-stages over which the routing script commands operate. 
-Routing scripts can also be written as simple for-expressions without using class Play.  This may
-lead to more typecasts and the use of the untyped DSL-commands provided by the object Play.
-Routing scripts based on simple for-expressions may be run using two additional commands of the DSL:
+\end{itemize}                                                                                                             
+                                                                 
+The class Play places an upper bound on the type of actor-stages over which the routing script
+commands operate. Routing scripts can also be written as simple for-expressions without using class
+Play. This may lead to more typecasts through the use of the untyped DSL-commands provided as
+additional utility functions by Sofleuse. Simple routing scripts based on simple for-expressions may
+be run using two additional commands of the DSL:
 
 \begin{itemize}
     \item \textbf{run(\emph{forExpr})} Run \emph{forExpr} and wait until its execution yields a result (blocks current actor)
@@ -233,16 +248,36 @@ $\}$\\
 \end{tabular}
 \caption{Simple RPC in Sofleuse\label{fig:rpc}}
 \end{figure}
-           
-\subsection{Implementation}
-                  
-Sofleuse uses some of scala's unique features, like CPS-transform in generator-expressions,
-anonymous functions, and self-types. 
 
-// Scala and Actors (as needed for implementation)
+Currently, Sofleuse does not yet support exception handling across stage boundaries.
+                                                                                
 
-// CPS-Transform 
+\section{Implementation}
+            
+To implement the continuation-passing approach to extracting request routing logic, several 
+subproblems had to be solved.
 
+\subsection{Actors that execute arbitrary code} 
+
+First, it is necessary that actors may be instructed externally to execute thunks of arbitrary
+control flow. For this, Sofleuse provides the trait StageActor whose main loop listens for messages
+consisting of one-argument anonymous lambda-functions. When such a function is received, it is
+executed by passing a reference to the StageActor itself as a representation of access to local
+processing logic as its first argument.
+
+Additionally, for advanced uses, Sofleuse supports another type of actor, whose processing logic
+representation (called Prop) can be replaced at runtime by routing scripts.
+
+
+\subsection{Passing Continuations}
+
+- From lambdas to fors\\
+- Explain CPS\\
+- Explain CPS in scala\\
+                                                                           
+\subsection{Continuation Access}
+
+- Nice littel extension\\
 
 \section{Evaluation}
 
