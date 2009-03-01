@@ -7,8 +7,8 @@ package de.jasminelli.sofleuse.bench
  * Originally created by User: stepn Date: 15.02.2009 Time: 15:12:28
  */
 object ACDCvsPingPongBench {
-  val warmup = 1 // >=1 to ensure enough threads are started
-  val tries = 9 // median of tries is result, each try is n requests over given stages
+  val warmup = 3 // >=1 to ensure enough threads are started
+  val tries = 27 // median of tries is result, each try is n requests over given stages
 
   def runOnce(tag: String, cores: Int, dur: Long, stages: Int, rq: Int) = {
     // cores-parameter      load

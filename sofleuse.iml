@@ -14,7 +14,7 @@
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="library" name="scala-2.7.3.final" level="application" />
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="1.6-dp" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="Maven: org.scala-lang:scala-library:2.7.3" level="project" />
     <orderEntry type="library" name="Maven: junit:junit:4.0" level="project" />

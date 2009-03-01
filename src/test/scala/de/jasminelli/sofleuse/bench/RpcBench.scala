@@ -57,14 +57,15 @@ abstract class RpcBench[T](params: BenchParams, verific: Verificator) {
     bar
   }
 
-  def execute: Long = {
+  def execute: Array[Long] = {
     Console.print("# ")
-    for (_ <- 0.until(params.warmUp)) executeOnce
+    var warmUp: List[Long] =
+      (for (_ <- 0.until(params.warmUp)) yield executeOnce).toList
     Console.print(" /* post-warmup */ ")
     val results: List[Long] =
       (for (i <- 0.until(params.times)) yield executeOnce).toList
     Console.println()
-    results.sort(_<=_)(params.times/2)
+    (warmUp ++ results).toArray
   }
 
   def executeOnce(): Long = {
@@ -151,11 +152,26 @@ abstract class RpcBench[T](params: BenchParams, verific: Verificator) {
     Console.println
     Console.print("# ")
     Console.println(tag, params)
-    val dur: Long = execute
-    Console.format("%s\t%s\t%s\t%s\t%s\t%s\t%s",
-      tag, params.load.requiredRequests, params.numStages, params.times, dur, dur/params.times,
-      threadCount)
-    dur
+
+    val durations: Array[Long] = execute
+
+    val statDurations: Array[Long] = durations.slice(params.warmUp, durations.length - 1)
+            .toList.sort(_<=_).toArray
+    
+    var min = statDurations.first
+    val max = statDurations.last
+    val sum = statDurations.foldLeft(0L)(_+_)
+    val avg = sum / params.times
+    val varSum = statDurations.foldLeft(0L) { (acc, item) => acc + ((item - avg) * (item - avg)) }
+    val deviation = Math.sqrt(varSum / params.times)
+    val median = statDurations(statDurations.length/2)
+
+    Console.format("# RAW:\t" + (for (d <- durations) yield d + "\t").toList.foldLeft("")(_+_))
+    Console.format("\n%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
+      tag, params.load.requiredRequests, params.numStages, params.warmUp, params.times,
+      min, max, median, avg, deviation, threadCount)
+
+    avg
   }
 
   def sleep(dur: Long) {
