@@ -155,21 +155,22 @@ abstract class RpcBench[T](params: BenchParams, verific: Verificator) {
 
     val durations: Array[Long] = execute
 
-    val statDurations: Array[Long] = durations.slice(params.warmUp, durations.length - 1)
+    val statDurations: Array[Long] = durations.slice(params.warmUp, durations.length)
             .toList.sort(_<=_).toArray
     
     var min = statDurations.first
     val max = statDurations.last
     val sum = statDurations.foldLeft(0L)(_+_)
     val avg = sum / params.times
-    val varSum = statDurations.foldLeft(0L) { (acc, item) => acc + ((item - avg) * (item - avg)) }
-    val deviation = Math.sqrt(varSum / params.times)
+    val varSum = statDurations.foldLeft(0L) { (acc, item) => acc + (item * item) }
+    val deviation = Math.sqrt((varSum / params.times) - (avg * avg))
+    val devPct = deviation / avg * 100
     val median = statDurations(statDurations.length/2)
 
-    Console.format("# RAW:\t" + (for (d <- durations) yield d + "\t").toList.foldLeft("")(_+_))
-    Console.format("\n%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
+    Console.format("# " + tag + "-raw\t" + (for (d <- durations) yield d + "\t").toList.foldLeft("")(_+_))
+    Console.format("\n%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
       tag, params.load.requiredRequests, params.numStages, params.warmUp, params.times,
-      min, max, median, avg, deviation, threadCount)
+      sum, min, max, median, avg, deviation, devPct, threadCount)
 
     avg
   }

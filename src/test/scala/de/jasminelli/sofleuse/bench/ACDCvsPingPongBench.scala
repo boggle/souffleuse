@@ -24,7 +24,7 @@ object ACDCvsPingPongBench {
       if (cores == -1) LinRqLoad(rq) else BulkRqLoad(rq)
     }
 
-    // val verific = new CountingVerificator
+    //val verific = new CountingVerificator
     val verific = new PlainVerificator
 
     (Symbol(tag) match {
@@ -52,9 +52,9 @@ object ACDCvsPingPongBench {
       // number of stages
       val stages =
         if (cores < 0)
-          List(1, 2, 3, 4, 8, 12, 16, 20, 24, 28, 32, 48, 56, 64)
+          List(1, 2, 3, 4, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32, 48, 56, 64)
         else
-          List(1, 2, 3, 4, 8, 12, 16, 20, 24, 28, 32, 48, 64, 80, 96, 128)
+          List(1, 2, 3, 4, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32, 48, 64, 80, 96, 128)
       for (stageParam <- stages)
       {
         Console.format("acdc %s %s %s %s\n", cores, dur, stageParam, rq)
