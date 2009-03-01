@@ -133,9 +133,10 @@ stage.
 \subsection{Partial Actor Continuations}
 
 Extracting routing logic requires a mechanism for \emph{pausable, stateful control-flow}.
-Introducing an extra stage is just one way to achive this. Other possible techniques are the use of
-coroutines or continuations. This article concentrates on the latter.
-                                                
+Introducing an extra stage is just one way to achieve this. Other possible techniques are the use of
+coroutines or continuations the latter on which this article concentrates.
+          
+
 // google arbitrary often
 
 // TODO: More on Continuations (?)
@@ -144,6 +145,7 @@ The continuation of a computation describes the part of a computation that yet n
 Some programming languages, especially the scheme-dialect of lisp, provide means for explicitely
 capturing the continuation at runtime and by this allow it to be executed arbitrary often.  This
 can be used to implement new control structures inside the programming language.  
+
                                 
 // Parameterization
 
@@ -175,42 +177,62 @@ domain specific language (DSL) for writing routing scripts that execute over a s
 running actors.
 
 Routing script are implemented by subclassing the class Play and overriding the apply method. Play
-instances are provided with a set of DSL-commands for writing scripts. Additionally, Play places an
-upper bound on the type of actor-stages over which the routing script commands operate. To capture
-continuations, these commands are chained inside scala's CPS-transforming for-generator-expressions
+instances are provided with a set of DSL-commands for writing scripts. Commands provide the ability
+to structure scripts as a sequence of blocks that are each executed at different stages. To capture
+continuations, commands are chained by using scala's CPS-transforming for-generator-expressions
 (explained below). The following command set is provided:
 
-\begin{itemize}                                   
-	\item \textbf{v <- remember(value)} Bind value to v for reuse by later routing decisions of the
-	script
-	\item \textbf{v <- compute(thunk)} Compute thunk at the current local stage.  The return value is bound
-	to v and may be reused in later routing decisions of the script
-	\item \textbf{v <- computeWith(o)(thunk)} Like compute but thunk takes o as its first argument
-	\item \textbf{s <- goto(stage)} Continue execution at stage and return a suitable reference s to gain 
-	access to the local processing logic of stage (usually the stage itself)
-	\item \textbf{s <- jump(thunk)} Continue execution at the stage returned as a result of executing thunk 
-	and return a suitable reference s to gain access to the local processing logic of stage (usually 
-	the stage itself)
-	\item \textbf{t <- cast[T](stage)} Like goto but cast the result of goto(s) to type T   
-	\item \textbf{yield(result)} The yield command of the for-expression may optionally be used to return 
-	a result to the initial caller of the script                           	
-	\item \textbf{endOfPlay} An empty generator expression to syntactically denote 
-	the end of a routing script that does not return a value to its caller.
-\end{itemize}                                                                                                  
 
-Routing scripts can also be written as simple for-expressions without using class Play.  This will
-usually involve more typecasts and the use of the untyped DSL-commands provided by the object Play.
-These for-expressions may be run using two additional commands of the DSL:
+\begin{itemize}                                   
+	\item \textbf{\emph{v} <- remember(\emph{value})} Bind \emph{value} to \emph{v} for reuse by
+	later routing decisions of the script
+	\item \textbf{\emph{v} <- compute(\emph{thunk})} Compute \emph{thunk} at the current local stage.  
+	The return value is bound to \emph{v} and may be reused in later routing decisions of the script
+	\item \textbf{\emph{v} <- computeWith(\emph{o})(\emph{thunk})} Like \textbf{compute(\emph{thunk})} 
+	but \emph{thunk} takes \emph{o} as its first argument
+	\item \textbf{\emph{s} <- goto(\emph{stage})} Continue execution at stage \emph{stage} and 
+	return a reference \emph{s} for gainining access to the local processing logic of \emph{stage} 
+	(usually \emph{stage} itself)
+	\item \textbf{\emph{s} <- jump(\emph{thunk})} Execute thunk at the current (active) stage in 
+	order to determine the next stage for script execution.	Return a suitable reference \emph{s} to 
+	gain access to the local processing logic of that stage
+	\item \textbf{\emph{t} <- cast[\emph{T}](\emph{stage})} Like \textbf{goto(\emph{stage})} but 
+	cast the result of \textbf{goto(\emph{stage})} to type \emph{T}   
+	\item \textbf{yield(result)} The yield command of the for-expression may optionally be used to 
+	return a result to the initial caller of the script                           	
+	\item \textbf{endOfPlay} Syntactically denote the end of a routing script that does not return
+	 a value to its caller.
+\end{itemize}                                                                                                  
+                                                                            
+Play places an upper bound on the type of actor-stages over which the routing script commands operate. 
+Routing scripts can also be written as simple for-expressions without using class Play.  This may
+lead to more typecasts and the use of the untyped DSL-commands provided by the object Play.
+Routing scripts based on simple for-expressions may be run using two additional commands of the DSL:
 
 \begin{itemize}
-	\item \textbf{asyncRun(for-expr)} Rus for-expr without waiting for a result (Non-Blocking)
-    \item \textbf{run(for-expr)} Run for-expr and wait until its execution yields a result (Blocks current actor)
+    \item \textbf{run(\emph{forExpr})} Run \emph{forExpr} and wait until its execution yields a result (blocks current actor)
+	\item \textbf{asyncRun(\emph{forExpr})} Runs \emph{forExpr} without waiting for a result (non-blocking)
 \end{itemize}	
 
-// Example
+As an example, consider the execution of a simple RPC call~(Fig.~\ref{fig:rpc}).  The call is wrapped
+as a function that initially creates a new script based on a simple for-expression. The script
+itself first transfers the execution to the stage for the rpc using \textbf{goto}. Then, the actual 
+rpc is executed at that stage using \textbf{compute}, and finally a return value is yielded.  
+To actually execute this routing script for-expression, it is started with \textbf{run}.
 
-// Describe execution
-
+\begin{figure}
+\centering    
+\begin{tabular}{l}           
+$\textbf{def}\ $rpc$(\emph{initialStage}, \emph{input})\ =\ \{$\\	
+\hspace{2ex} $\textbf{val}\ \emph{request}\ =\ \textbf{for} ($\\
+\hspace{6ex} $\emph{stageRep}\ <-\ $goto$(\emph{initialStage})$\\
+\hspace{6ex} $\emph{result}\ <-\ $compute$\ \{\ stageRep.$compute$(\emph{input})\ \}$\\
+\hspace{2ex} $)\ \textbf{yield}\ result$\\
+\hspace{2ex} $\textbf{return}\ $run$(\emph{request})$\\   
+$\}$\\
+\end{tabular}
+\caption{Simple RPC in Sofleuse\label{fig:rpc}}
+\end{figure}
            
 \subsection{Implementation}
                   
