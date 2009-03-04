@@ -1,6 +1,6 @@
 * TODO: More tests: Especially: Continuations, finishScene, remoteActors
 * MAYBE: Find out how all this scala testing sw can be used (scala check, scala spec whatnot)
-* DEBUG: Performance comparison between "pull-type-rpc" and "sofleuse"
+* DEBUG: Performance comparison between "pull-type-rpc" and "souffleuse"
 * TODO: Refactor Benchmark code
 * TODO: Read up on scala's event scheduling
 * TODO: Demo/Slides!

@@ -1,4 +1,6 @@
 \documentclass{sig-alternate}
+\usepackage{graphicx}
+\usepackage{eepic}
 
 \begin{document}
 
@@ -15,7 +17,7 @@ Stefan Plantikow\\
        \affaddr{Zuse Institute Berlin (ZIB)}\\
        \affaddr{Takustrasse 7}\\
        \affaddr{14195 Berlin, Germany}\\
-       \email{plantikow@zib.de}
+       %\email{plantikow@zib.de}
 }
 
 \date{1 March 2009}
@@ -42,7 +44,7 @@ request routing logic for scripts of at least 3 sequential steps.
 \category{H.2.4}{Information Systems}{Systems}[Concurrency]         
 \category{D.1.3}{Software}{Programming Techniques}[Concurrent Programming]         
 \category{D.3.3}{Programming Languages}{Language Constructs and Features}[Concurrency]
-\category{D.2.11}{Software Engineering}{Distribution, Maintenance, and Enhancement}[Extensibility]
+%\category{D.2.11}{Software Engineering}{Distribution, Maintenance, and Enhancement}[Extensibility]
 
 \keywords{Request Routing, Event-Driven Architecture, Partial Continuation, Actor Model, Scala}
 
@@ -196,20 +198,20 @@ continuations, commands are chained by using scala's CPS-transforming \textbf{fo
 	later routing decisions of the script
 	\item \textbf{\emph{v} <- compute(\emph{thunk})} Compute \emph{thunk} at the current local stage.  
 	The return value is bound to \emph{v} and may be reused in later routing decisions of the script
-	\item \textbf{\emph{v} <- computeWith(\emph{o})(\emph{thunk})} Like \textbf{compute(\emph{thunk})} 
-	but \emph{thunk} takes \emph{o} as its first argument
+	%\item \textbf{\emph{v} <- computeWith(\emph{o})(\emph{thunk})} Like \textbf{compute(\emph{thunk})} 
+	%but \emph{thunk} takes \emph{o} as its first argument
 	\item \textbf{\emph{s} <- goto(\emph{stage})} Continue execution at stage \emph{stage} and 
 	return a reference \emph{s} for gainining access to the local processing logic of \emph{stage} 
 	(usually \emph{stage} itself)
 	\item \textbf{\emph{s} <- jump(\emph{thunk})} Execute thunk at the current (active) stage in 
 	order to determine the next stage for script execution.	Return a suitable reference \emph{s} to 
 	gain access to the local processing logic of that stage
-	\item \textbf{\emph{t} <- cast[\emph{T}](\emph{stage})} Like \textbf{goto(\emph{stage})} but 
-	cast the result of \textbf{goto(\emph{stage})} to type \emph{T}   
+	%\item \textbf{\emph{t} <- cast[\emph{T}](\emph{stage})} Like \textbf{goto(\emph{stage})} but 
+	%cast the result of \textbf{goto(\emph{stage})} to type \emph{T}   
 	\item \textbf{yield(result)} The yield statement of the \textbf{for}-expression may optionally be used to 
 	return a result to the initial caller of the script                           	
-	\item \textbf{endOfPlay} Syntactically denote the end of a routing script that does not return
-	 a value to its caller.
+	%\item \textbf{endOfPlay} Syntactically denote the end of a routing script that does not return
+	% a value to its caller.
 \end{itemize}
 
 
@@ -233,7 +235,7 @@ is started with \textbf{run}.
 
 \begin{figure}
 \centering    
-\begin{tabular}{l}           
+{\footnotesize\begin{tabular}{l}           
 $\textbf{def}\ $rpc$(\emph{targetStage}, \emph{args})\ =\ \{$\\	
 \hspace{2ex} $\textbf{val}\ \emph{request}\ =\ \textbf{for} ($\\
 \hspace{6ex} $\emph{stageRep}\ \leftarrow\ $goto$(\emph{targetStage})$\\
@@ -241,10 +243,18 @@ $\textbf{def}\ $rpc$(\emph{targetStage}, \emph{args})\ =\ \{$\\
 \hspace{2ex} $)\ \textbf{yield}\ procResult$\\
 \hspace{2ex} $\textbf{return}\ $run$(\emph{request})$\\   
 $\}$\\
-\end{tabular}
+\end{tabular}}
 \caption{Simple RPC in Sofleuse\label{fig:rpc}}
 \end{figure}
 
+\begin{figure*}[t]
+\begin{center}
+\includegraphics[width=.33\hsize]{plots/BENCHMARK-8CORE-2009-03-01-23:59-LIN.pdf}%
+\includegraphics[width=.33\hsize]{plots/BENCHMARK-8CORE-2009-03-01-23:59-BLK.pdf}%
+\includegraphics[width=.33\hsize]{plots/BENCHMARK-8CORE-2009-03-01-23:59-ALL.pdf}
+\end{center}
+\end{figure*}
+	
 
 \section{Implementing ACP}
 
@@ -298,10 +308,9 @@ scripts are written as expressions of the form:
 
    
 \medskip
-\begin{tabular}{l} $\mathbf{for}\ (\mathit{v_1} \leftarrow \mathit{e_1}, \mathit{v_2} \leftarrow
-\mathit{e_2}, \ldots, \mathit{v_n} \leftarrow \mathit{e_n})$\\ 
-$\hspace{2ex}\mathbf{yield}\ \mathit{r}$
-\end{tabular}
+{\footnotesize\begin{tabular}{l} $\mathbf{for}\ (\mathit{v_1} \leftarrow \mathit{e_1}, \mathit{v_2} \leftarrow
+\mathit{e_2}, \ldots, \mathit{v_n} \leftarrow \mathit{e_n})\ \mathbf{yield}\ \mathit{r}$
+\end{tabular}}
 \medskip
 
 
@@ -315,10 +324,10 @@ transformed by the Scala compiler into:
 
 
 \medskip
-\begin{tabular}{l}
+{\footnotesize\begin{tabular}{l}
 $\mathit{e_1}.$flatMap$\ \{\ \mathbf{case}\ \mathit{v_1}\ \Rightarrow$\\
 $\hspace{2ex}\mathit{e_2}.$flatMap$\ \{\ \mathbf{case}\ \mathit{v_2}\ \Rightarrow\ \ldots\ \mathit{e_n}.$map$\ \{\ \mathit{r}\ \}\ \ldots\ \}\ \}$
-\end{tabular}
+\end{tabular}}
 \medskip
 
 
@@ -335,15 +344,13 @@ To implement actor continuation passing, Sofleuse associates each StageActor wit
 respond method simply forwards passed continuations to the StageActor via message passing:
                                                                                             
 \medskip
-\begin{tabular}{l}                                
+{\footnotesize\begin{tabular}{l}                                
 $\mathbf{object}\ $responder$\ \mathbf{extends}\ $Responder[this.type]$\ \{$\\
-\hspace{2ex}$\mathbf{def}\ $respond$(\mathit{k}:\ $Actor.this.type$\ \Rightarrow\ $Unit$):\ $Unit$\ =\ $\\
-\hspace{4ex}self.send$(\mathit{k})$\\
+\hspace{2ex}$\mathbf{def}\ $respond$(\mathit{k}:\ $Actor.this.type$\ \Rightarrow\ $Unit$):\ $Unit$\ =\ $self.send$(\mathit{k})$\\
 $\}$\\
 \\
-$\mathbf{def}\ $asResponder$:\ $Responder[Actor.this.type]$\ =\ $\\
-\hspace{2ex}responder
-\end{tabular}
+$\mathbf{def}\ $asResponder$:\ $Responder[Actor.this.type]$\ =\ $responder\\
+\end{tabular}}
 \medskip
 
 This mechanism is sufficient to implement the Sofleuse DSL. \textbf{goto} returns a responder for
@@ -375,13 +382,15 @@ access the currently running continuation.  This may be used to forward continua
 to other stages (load balancing) or execute the same continuation repeatedly over multiple
 actors (replication).                               
 
-Additionally, scripts may register a hook that will be executed with the next continuation as its
-argument as soon as it arrives. This is useful for implementing functions like
-shutdownAfterNextScene that can be called during \textbf{compute} to trigger a stage shutdown after
-the following \textbf{goto} (batches of consecutive commands to the same stage from one script 
-are always executed together without interleaving commands from other scripts).
+% Additionally, scripts may register a hook that will be executed with the next continuation as its
+% argument as soon as it arrives. This is useful for implementing functions like
+% shutdownAfterNextScene that can be called during \textbf{compute} to trigger a stage shutdown after
+% the following \textbf{goto} (batches of consecutive commands to the same stage from one script 
+% are always executed together without interleaving commands from other scripts). 
 
 \section{Evaluation}
+               
+Both approaches have been evaluated in the following setting. Incoming requests have to be
 
 // Describe settting
 

@@ -1,12 +1,13 @@
-sofleuse.iws
+souffleuse.iws
 target/
+DEBS2009-ACET/main.log
 
 # old skool
 .svn
 .hg
 
 # os x
-sofleuse.xcodeproj
+souffleuse.xcodeproj
 .DS_Store
 profile
 build/*

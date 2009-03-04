@@ -2,9 +2,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>de.jasminelli</groupId>
-  <artifactId>sofleuse</artifactId>
+  <artifactId>souffleuse</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <name>Sofleuse - de.jasminelli:sofleuse:jar:1.0-SNAPSHOT (jar)</name>
+  <name>Souffleuse - de.jasminelli:souffleuse:jar:1.0-SNAPSHOT (jar)</name>
   <inceptionYear>2008</inceptionYear>
   <properties>
     <scala.version>2.7.3</scala.version>
@@ -65,11 +65,11 @@
 
 		<launchers>
           <!-- Also valid: args arg and jvmArgs jvmArg -->
-		  <launcher><id>RpcDemo</id><mainClass>de.jasminelli.sofleuse.RpcDemo</mainClass></launcher>
-		  <launcher><id>ExamplePlay</id><mainClass>de.jasminelli.sofleuse.ExamplePlay</mainClass></launcher>
-		  <launcher><id>LatchTest</id><mainClass>de.jasminelli.sofleuse.util.LatchTest</mainClass></launcher>
+		  <launcher><id>RpcDemo</id><mainClass>de.jasminelli.souffleuse.RpcDemo</mainClass></launcher>
+		  <launcher><id>ExamplePlay</id><mainClass>de.jasminelli.souffleuse.ExamplePlay</mainClass></launcher>
+		  <launcher><id>LatchTest</id><mainClass>de.jasminelli.souffleuse.util.LatchTest</mainClass></launcher>
 		  <launcher>
-              <id>Bench</id><mainClass>de.jasminelli.sofleuse.bench.ACDCvsPingPongBench</mainClass>
+              <id>Bench</id><mainClass>de.jasminelli.souffleuse.bench.ACDCvsPingPongBench</mainClass>
               <jvmArgs><jvmArg>-server</jvmArg></jvmArgs>
           </launcher>
 		</launchers>

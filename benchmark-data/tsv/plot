@@ -1,18 +1,15 @@
 set autoscale
 unset log
 unset label
+
 set xtics (1,2,3,4,5,6,7,8,10,12,14,16,20,24,28,32)
-set ytic auto
+set ytics auto 
 set xlabel "Number of stages"
 set ylabel "Avg duration for 64k requests (ms)"
 
-set terminal pdf
+set terminal pdf monochrome enhanced fsize 8 fname "Times-Roman" size 3.32,2
 set output "$1.pdf"
 
-plot "$1" u 2:7:5:6 t "Actor Continuation Passing (ACP)" w yerrorlines, "" u 2:11:9:10 t "Ping-Pong (PPNG)" w yerrorlines
-
-set terminal latex
-set output "$1.ltx"
-replot
+plot "$1.tsv" u 2:7:5:6 t "Actor Continuation Passing (ACP)" w yerrorlines, "" u 2:11:9:10 t "Ping-Pong (PPNG)" w yerrorlines
 
 

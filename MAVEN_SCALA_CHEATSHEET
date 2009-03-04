@@ -5,7 +5,7 @@ mvn scala:compile -Dmaven.scala.displayCmd=true
 
 // running:
 
-mvn scala:run -DmainClass=de.jasminelli.sofleuse.ExamplePlay
+mvn scala:run -DmainClass=de.jasminelli.souffleuse.ExamplePlay
 mvn scala:run -Dlauncher=RpcDemo                            
                                                             
 

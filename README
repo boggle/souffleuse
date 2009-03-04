@@ -1,6 +1,6 @@
 
 ========
-Sofleuse
+Souffleuse
 ========
 
 Upside-down event-based programming for scala actors
@@ -12,18 +12,18 @@ ABOUT SOFLEUSE
 
 Normal actor (aka "erlang-style") concurrent programming assumes that each actor only responds to a limited set of messages.  External requests are usually represented as (tcp-connection-encapsulating) actors that communicate with other actors in the system in order to generate a result.  However, in the presence of many different request types, this may cause a dilemma: Either the logic of how each request type is handled is spread all over the system (tiny pieces of business logic in every actor) or, if the request type is implemented as a single actor, a performance penalty for rpc-style ("pull") message passing may be incurred.
 
-Sofleuse is an attempt to solve this issue.  Request types ("Plays") are written in a single piece of code as a sequence of steps ("Scenes"). However, contrary to normal execution order, each such scene may be executed by a different actor ("Stage").
+Souffleuse is an attempt to solve this issue.  Request types ("Plays") are written in a single piece of code as a sequence of steps ("Scenes"). However, contrary to normal execution order, each such scene may be executed by a different actor ("Stage").
 
-Approach: Sofleuse uses scala's for-statement and Responder-type to send continuation-lambdas to stages for execution.  During the execution of a single scene at an actor stage, the follow-up scene or intermediate results get computed.  If a new stage is selected, the new continuation lambda is send there such that the computation can move on without returning to the actor that initially submitted the play.  Finally, a single result value may be returned the initial submitter via normal message passing.
+Approach: Souffleuse uses scala's for-statement and Responder-type to send continuation-lambdas to stages for execution.  During the execution of a single scene at an actor stage, the follow-up scene or intermediate results get computed.  If a new stage is selected, the new continuation lambda is send there such that the computation can move on without returning to the actor that initially submitted the play.  Finally, a single result value may be returned the initial submitter via normal message passing.
 
-Sofleuse is a little library and mini dsl that implements this idea.
+Souffleuse is a little library and mini dsl that implements this idea.
 
 
 --------
 BUILDING
 --------
 
-Sofleuse is a normal maven 2 project.
+Souffleuse is a normal maven 2 project.
 
 mvn package
 
