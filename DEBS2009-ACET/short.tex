@@ -7,7 +7,7 @@
 \conferenceinfo{DEBS}{2009 Nashville, Tennessee USA}
 
 \title{Passing Actor Continuations}
-\subtitle{Efficient and Extensible Request Routing for Event-Driven Architectures}
+\subtitle{Efficient and Extensible Request Handling for Event-Driven Architectures}
 
 \numberofauthors{1} 
 
@@ -129,7 +129,7 @@ capturing. The impact of these different properties will be shown in the evaluat
 Souffleuse is a library for request handling with actor continuation passing that has been
 implemented in the scala programming language~\cite{Odersky:2004} using the scala actor
 library~\cite{Haller:2007}. Sofleuse provides a \emph{domain specific language (DSL)} for writing
-routing scripts that execute over a set of locally running stages. Routing scripts are implemented
+request scripts that execute over a set of locally running stages. Request scripts are implemented
 in terms of a simple set of commands that allow structuring scripts as a sequence of code blocks
 that are executed at different stages.
 
@@ -151,10 +151,10 @@ $\}$\\
 \end{tabular}}
 \medskip
 
-The call is wrapped as a function that initially assembles a new script. The script itself first
+The call is wrapped as a function that initially assembles a new request script. The script itself first
 transfers the execution to the \emph{targetStage} for the RPC using \textbf{goto}. Then, the actual
 RPC is executed at that stage using \textbf{compute}, and finally the return value is yielded. To
-actually execute this routing script, it is started with \textbf{run}.
+actually execute this request script, it is started with \textbf{run}.
 
 
 
