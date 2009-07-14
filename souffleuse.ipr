@@ -76,6 +76,13 @@
     <option name="USE_USER_FILTER" value="false" />
     <option name="USER" value="" />
   </component>
+  <component name="CheckStyle-IDEA">
+    <option name="configuration">
+      <map>
+        <entry key="check-test-classes" value="true" />
+      </map>
+    </option>
+  </component>
   <component name="CodeExplorer">
     <option name="filters">
       <list>
@@ -101,7 +108,7 @@
   </component>
   <component name="CompilerConfiguration">
     <option name="DEFAULT_COMPILER" value="Javac" />
-    <option name="DEPLOY_AFTER_MAKE" value="0" />
+    <option name="DEPLOY_AFTER_MAKE" value="2" />
     <resourceExtensions>
       <entry name=".+\.(properties|xml|html|dtd|tld)" />
       <entry name=".+\.(gif|png|jpeg|jpg)" />
@@ -766,11 +773,11 @@
     <option name="CUSTOM_FILTER" />
   </component>
   <component name="MavenBuildProjectComponent">
-    <option name="mavenExecutable" value="" />
+    <option name="mavenExecutable" value="-Djavarebel.jar.path=${user.home}/javarebel/javarebel.jar" />
     <option name="Settings File" value="$PROJECT_DIR$/../../.m2/settings.xml" />
     <option name="mavenCommandLineParams" value="" />
     <option name="vmOptions" value="" />
-    <option name="useMavenEmbedder" value="false" />
+    <option name="useMavenEmbedder" value="true" />
     <option name="useFilter" value="false" />
     <option name="Batch Mode" value="false" />
     <option name="Check Plugin Updates" value="false" />

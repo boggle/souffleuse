@@ -13,3 +13,11 @@ profile
 build/*
 .pbxuser
 .modev1v3
+target/*
+DEBS2009-ACET/short.aux
+DEBS2009-ACET/short.bbl
+DEBS2009-ACET/short.blg
+DEBS2009-ACET/short.log
+DEBS2009-ACET/short.pdf
+DEBS2009-ACET/short.synctex.gz
+
