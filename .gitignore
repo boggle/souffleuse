@@ -3,14 +3,14 @@ souffleuse.iws
 souffleuse.iml
 souffleuse.ipr
 target/
-DEBS2009-ACET/main.log
-DEBS2009-ACET/main.aux
-DEBS2009-ACET/main.log
-DEBS2009-ACET/main.pdf
-DEBS2009-ACET/main.synctex.gz
-DEBS2009-ACET/main.bbl
-DEBS2009-ACET/main.blg
-DEBS2009-ACET/texput.log
+ACET-PAPER/main.log
+ACET-PAPER/main.aux
+ACET-PAPER/main.log
+ACET-PAPER/main.pdf
+ACET-PAPER/main.synctex.gz
+ACET-PAPER/main.bbl
+ACET-PAPER/main.blg
+ACET-PAPER/texput.log
 
 # old skool
 .svn
@@ -24,12 +24,12 @@ build/*
 .pbxuser
 .modev1v3
 target/*
-DEBS2009-ACET/short.aux
-DEBS2009-ACET/short.bbl
-DEBS2009-ACET/short.blg
-DEBS2009-ACET/short.log
-DEBS2009-ACET/short.pdf
-DEBS2009-ACET/short.synctex.gz
+ACET-PAPER/short.aux
+ACET-PAPER/short.bbl
+ACET-PAPER/short.blg
+ACET-PAPER/short.log
+ACET-PAPER/short.pdf
+ACET-PAPER/short.synctex.gz
 scala-compiler*
 scala-library*
 
