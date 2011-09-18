@@ -111,3 +111,10 @@ mvn scala:testCompile
       <scriptFile>pathToScript/MyScript</scriptFile>
     </configuration>
   </plugin>  
+
+
+
+// DEALING w Repo download problems
+
+mvn install:install-file -DgroupId=org.scala-lang -DartifactId=scala-compiler -Dversion=2.8.0 -Dpackaging=jar -Dfile=scala-compiler-2.8.0*.jar
+mvn install:install-file -DgroupId=org.scala-lang -DartifactId=scala-library -Dversion=2.8.0 -Dpackaging=jar -Dfile=scala-library-*.jar

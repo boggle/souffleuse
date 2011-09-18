@@ -1,6 +1,16 @@
+pom.xml
 souffleuse.iws
+souffleuse.iml
+souffleuse.ipr
 target/
 DEBS2009-ACET/main.log
+DEBS2009-ACET/main.aux
+DEBS2009-ACET/main.log
+DEBS2009-ACET/main.pdf
+DEBS2009-ACET/main.synctex.gz
+DEBS2009-ACET/main.bbl
+DEBS2009-ACET/main.blg
+DEBS2009-ACET/texput.log
 
 # old skool
 .svn
@@ -20,4 +30,6 @@ DEBS2009-ACET/short.blg
 DEBS2009-ACET/short.log
 DEBS2009-ACET/short.pdf
 DEBS2009-ACET/short.synctex.gz
+scala-compiler*
+scala-library*
 
